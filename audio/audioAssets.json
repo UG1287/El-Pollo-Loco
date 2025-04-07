@@ -1,0 +1,8 @@
+{
+    "background": "audio/background.mp3",
+    "jump": "audio/jump.mp3",
+    "hit": "audio/hit.mp3",
+    "throw": "audio/throw.mp3",
+    "coin": "audio/coin.mp3"
+  }
+  
