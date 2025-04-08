@@ -54,7 +54,7 @@ class SoundManager {
     for (const soundKey in this.sounds) {
       let audio = this.sounds[soundKey];
       audio.pause();
-      audio.currentTime = 0; // Zurückspulen, falls du möchtest, dass beim nächsten Start bei 0 abgespielt wird
+      audio.currentTime = 0;
     }
   }
 }

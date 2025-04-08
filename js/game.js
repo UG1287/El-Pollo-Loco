@@ -33,8 +33,7 @@ function resetGame() {
   // Neue World mit neuem Level
   world = new World(canvas, keyboard, soundManager, newLevel);
 
-  setTimeout(() => soundManager.playBackgroundMusic(), 500);
-  console.log('Reset Game fertig: Neue World & Level erstellt.');
+  soundManager.playBackgroundMusic();
 }
 
 window.resetGame = resetGame;
