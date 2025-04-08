@@ -24,6 +24,7 @@
     <script src="models/endboss.class.js"></script>
     <script src="models/startscreen.class.js"></script>
     <script src="levels/level1.js"></script>
+    <script src="js/landing.js"></script>
     <script src="js/game.js"></script>
     <title>El Pollo Loco</title>
   </head>
@@ -32,5 +33,40 @@
       <h1>El Pollo Loco</h1>
       <canvas id="canvas" width="720" height="480"> </canvas>
     </div>
+
+    <div id="orientationOverlay" style="display:none;">
+      <p>Bitte drehen Sie Ihr Gerät in den Querformatmodus, um zu spielen!</p>
+    </div>
+
+    <div id="touchControls">
+      <button id="leftBtn">⬅️</button>
+      <button id="jumpBtn">⤴️</button>
+      <button id="rightBtn">➡️</button>
+    </div>
+    
+    
+
+    <main>
+      <button id="startGameBtn">Spiel Starten</button>
+
+      <button id="explanationBtn">Spielerklärung</button>
+    </main>
+
+
+    <div id="explanationModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Spielerklärung</h2>
+        <p>
+          Hier steht die Erklärung, wie das Spiel funktioniert, welche Tasten
+          genutzt werden, etc.
+        </p>
+      </div>
+    </div>
+    <footer>
+      <nav>
+        <a href="impressum.html">Impressum</a>
+      </nav>
+    </footer>
   </body>
 </html>

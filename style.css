@@ -27,6 +27,55 @@ canvas {
   display: block;
 }
 
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.modal-content {
+  background-color: #fff;
+  margin: 10% auto;
+  padding: 20px;
+  width: 80%;
+  max-width: 600px;
+  border-radius: 4px;
+}
+
+.modal-content .close {
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#touchControls {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1001;
+}
+
+#touchControls button {
+  font-size: 24px;
+  margin: 0 10px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  background-color: #007bff;
+  color: #fff;
+  cursor: pointer;
+}
+
+
+
 /*Smartphones */
 @media only screen and (max-width: 720px) {
   canvas {
@@ -41,6 +90,13 @@ canvas {
   }
 
   h1 {
+    display: block;
+  }
+}
+
+@media screen and (orientation: portrait) and (max-width: 768px) {
+  /* Blende ein Overlay ein, das besagt, dass das Spiel im Querformat gespielt werden soll */
+  #orientationOverlay {
     display: block;
   }
 }

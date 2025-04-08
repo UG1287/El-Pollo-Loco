@@ -11,11 +11,9 @@ class World {
   totalCoins;
   soundManager;
   bottleStatusBar = new BottleStatusBar();
+  gameOver = false; // NEU: Flag, ob das Spiel vorbei ist
 
-  // Variable, um zu prüfen, ob das Spiel vorbei ist
-  gameOver = false;
-
-  // Intervalle speichern, um sie später löschen zu können:
+  // Intervalle speichern – so können wir sie später abbrechen:
   collisionIntervalID;
   runIntervalID;
 
@@ -32,21 +30,25 @@ class World {
     // Falls du Clouds oder Sonstiges auch brauchst:
     // this.level.clouds.forEach(cloud => cloud.world = this);
 
-    // Character bekommt sein world-Objekt:
+    // Character bekommt sofort sein world-Objekt:
     this.setWorld();
     this.character.setWorld(this);
 
     // Zeichnen & Bewegungen starten:
     this.draw();
-    // Checks im 200ms-Intervall:
+    // Checks im 200ms-Intervall starten:
     this.run();
     // Kollisions-Check alle 25ms:
     this.startCollisionCheck();
   }
 
-  // Speichert den Interval ID zum späteren Stoppen
+  // Kollisions-Intervall starten und ID speichern
   startCollisionCheck() {
     this.collisionIntervalID = setInterval(() => {
+      if (this.gameOver) {  // ÄNDERUNG: Falls Spiel vorbei, Intervall beenden
+        clearInterval(this.collisionIntervalID);
+        return;
+      }
       this.checkCollisions();
     }, 25);
   }
@@ -58,9 +60,13 @@ class World {
     });
   }
 
-  // Speichert den Interval ID zum späteren Stoppen
+  // Run-Intervall starten und ID speichern
   run() {
     this.runIntervalID = setInterval(() => {
+      if (this.gameOver) {  // ÄNDERUNG: Falls Spiel vorbei, Intervall beenden
+        clearInterval(this.runIntervalID);
+        return;
+      }
       console.log('run() läuft');
       this.checkThrowObjects();
       this.checkCoinCollection();
@@ -69,9 +75,10 @@ class World {
     }, 200);
   }
 
+  // Kollisionsprüfungen – Abbruch, falls gameOver true ist
   checkCollisions() {
     if (this.gameOver) {
-      return; // Wenn das Spiel vorbei ist, werden keine Kollisionen mehr bearbeitet
+      return; // Nichts mehr tun, wenn das Spiel vorbei ist
     }
     this.level.enemies.forEach((enemy, index) => {
       if (this.character.isColliding(enemy)) {
@@ -81,23 +88,20 @@ class World {
         const verticalOverlap = characterBottom - enemyTop;
 
         const isJumpingOnEnemy =
-          // speedY < 0 bedeutet hier, dass der Charakter nach oben "fällt"
           this.character.speedY < 0 &&
           verticalOverlap > 0 &&
           verticalOverlap < 40;
 
         if (isJumpingOnEnemy) {
           console.log('✅ Charakter springt auf Gegner!');
-          // Rückstoß: Geschwindigkeit anpassen
-          this.character.speedY = 15;
+          this.character.speedY = 15; // Rückstoß nach oben
           enemy.die();
         } else {
           if (this.character.energy <= 0) {
-            if (!this.gameOver) {
-              // Nur einmal Game Over auslösen
+            if (!this.gameOver) { // Nur einmal Game Over auslösen
               this.showGameOverScreen();
             }
-            return; // Danach keine weitere Verarbeitung
+            return; // Anschließende Verarbeitung beenden
           }
           if (!this.character.isHurt()) {
             this.character.hit();
@@ -105,9 +109,7 @@ class World {
             console.log('💀 Neue HP:', this.character.energy);
             this.statusBar.setPercentage(this.character.energy);
           } else {
-            console.log(
-              '🔹 Charakter ist momentan unverwundbar (Hurt-Cooldown)'
-            );
+            console.log('🔹 Charakter ist momentan unverwundbar (Hurt-Cooldown)');
           }
         }
       }
@@ -170,10 +172,9 @@ class World {
   showVictoryScreen() {
     console.log('Victory!');
     this.gameOver = true;
-    // Alle Sounds stoppen
     this.soundManager.stopAllSounds();
 
-    // Stoppe die Intervalle:
+    // ÄNDERUNG: Intervalle stoppen
     clearInterval(this.collisionIntervalID);
     clearInterval(this.runIntervalID);
 
@@ -200,31 +201,25 @@ class World {
   }
 
   showGameOverScreen() {
-    // 1) Spiel anhalten
     this.gameOver = true;
     this.soundManager.stopAllSounds();
 
-    // Stoppe die Intervalle, damit danach nichts mehr läuft:
+    // ÄNDERUNG: Intervalle stoppen
     clearInterval(this.collisionIntervalID);
     clearInterval(this.runIntervalID);
 
-    // 2) Bild laden und zeichnen + Overlay
     const ohNoImg = new Image();
     ohNoImg.src = 'img/9_intro_outro_screens/game_over/OhNo.png';
     ohNoImg.onload = () => {
-      // Bildschirm leeren
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-      // Halbdurchsichtiger Hintergrund
       this.ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
       this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-      // Draw-Image mittig
       const imgWidth = 400;
       const imgHeight = 300;
       this.ctx.drawImage(ohNoImg, 0, 0, this.canvas.width, this.canvas.height);
 
-      // Overlay-Text: „Try Again? Press ENTER“
       this.ctx.fillStyle = 'white';
       this.ctx.font = '20px Arial';
       this.ctx.textAlign = 'center';
@@ -235,7 +230,6 @@ class World {
       );
     };
 
-    // 3) Setup Listener für ENTER
     this.setupGameOverKeyListener();
   }
 
@@ -270,7 +264,7 @@ class World {
 
   draw() {
     if (this.gameOver) {
-      return; // Stoppt alle Zeichnungen, wenn das Spiel vorbei ist
+      return; // Zeichnen beenden, wenn das Spiel vorbei ist
     }
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -292,7 +286,6 @@ class World {
 
     this.ctx.translate(-this.camera_x, 0);
 
-    // Zeichne die Szene rekursiv via requestAnimationFrame
     requestAnimationFrame(() => {
       this.draw();
     });

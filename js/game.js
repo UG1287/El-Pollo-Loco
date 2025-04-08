@@ -22,6 +22,20 @@ function startGame() {
   }
 }
 
+function checkOrientation() {
+  const overlay = document.getElementById('orientationOverlay');
+  if (window.matchMedia("(orientation: portrait)").matches) {
+    overlay.style.display = "block";
+  } else {
+    overlay.style.display = "none";
+  }
+}
+
+window.addEventListener("orientationchange", checkOrientation);
+window.addEventListener("resize", checkOrientation);
+document.addEventListener("DOMContentLoaded", checkOrientation);
+
+
 function resetGame() {
   console.log('Neues Spiel wird gestartet (ohne StartScreen)!');
   clearCanvas();
