@@ -23,14 +23,23 @@ class SoundManager {
 
   playSound(name) {
     if (!this.muted && this.sounds[name]) {
-      this.sounds[name].currentTime = 0;
-      this.sounds[name].play();
+      try {
+        this.sounds[name].currentTime = 0;
+        this.sounds[name].play().catch((e) => {
+          console.warn(`Sound "${name}" konnte nicht abgespielt werden:`, e);
+        });
+      } catch (e) {
+        console.warn(`Fehler beim Start von "${name}":`, e);
+      }
     }
   }
 
   playBackgroundMusic() {
-    if (!this.muted && this.sounds['background']) {
-      this.sounds['background'].play();
+    const bg = this.sounds['background'];
+    if (!this.muted && bg && bg.paused) {
+      bg.play().catch((e) =>
+        console.warn('Hintergrundmusik konnte nicht abgespielt werden:', e)
+      );
     }
   }
 
@@ -53,8 +62,12 @@ class SoundManager {
   stopAllSounds() {
     for (const soundKey in this.sounds) {
       let audio = this.sounds[soundKey];
-      audio.pause();
-      audio.currentTime = 0;
+      try {
+        audio.pause();
+        audio.currentTime = 0;
+      } catch (e) {
+        console.warn(`Fehler beim Stoppen von "${soundKey}":`, e);
+      }
     }
   }
 }

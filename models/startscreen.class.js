@@ -1,20 +1,19 @@
 class StartScreen {
   constructor(canvas, startCallback, keyboard) {
     this.canvas = canvas;
-    this.ctx = canvas.getContext("2d");
+    this.ctx = canvas.getContext('2d');
     this.startCallback = startCallback;
     this.keyboard = keyboard;
     this.startImage = new Image();
-    this.startImage.src = "img/9_intro_outro_screens/start/startscreen_2.png"; // Dein Startbild
+    this.startImage.src = 'img/9_intro_outro_screens/start/startscreen_2.png'; // Dein Startbild
 
     this.showStartScreen();
-    this.setupKeyListener();
+    // Die Keylistener-Logik wird hier nicht mehr benötigt, da wir Buttons verwenden.
   }
 
   showStartScreen() {
-    // Zeichne das Bild erst, wenn es geladen ist
+    // Zeichne das Bild, sobald es geladen ist
     this.startImage.onload = () => {
-      // Zeichne Bild fullscreen
       this.ctx.drawImage(
         this.startImage,
         0,
@@ -22,33 +21,72 @@ class StartScreen {
         this.canvas.width,
         this.canvas.height
       );
-
-      // Overlay-Text: „Enter Taste drücken + Erklärung“
-      this.ctx.fillStyle = "black";
-      this.ctx.font = "18px Arial";
-      this.ctx.textAlign = "center";
-      this.ctx.fillText(
-        "Press ENTER to start",
-        this.canvas.width / 2,
-        this.canvas.height * 0.92
-      );
-
-      // Kleinere Erklärung der Tasten
-      this.ctx.font = "15px Arial";
-      this.ctx.fillText(
-        "\nPfeiltasten: Laufen\nSPACE: Springen\nD: Flasche werfen\nF: Fullscreen\nM: Mute Sounds",
-        this.canvas.width / 2,
-        this.canvas.height * 0.98
-      );
+      // Nach dem Laden des Bildes werden die Buttons erstellt
+      this.createButtons();
     };
+
+    // Falls das Bild bereits geladen ist, gleich Buttons erzeugen
+    if (this.startImage.complete) {
+      this.ctx.drawImage(
+        this.startImage,
+        0,
+        0,
+        this.canvas.width,
+        this.canvas.height
+      );
+      this.createButtons();
+    }
   }
 
-  setupKeyListener() {
-    // Prüfe alle 100ms, ob ENTER gedrückt ist
-    setInterval(() => {
-      if (this.keyboard && this.keyboard.ENTER) {
-        this.startCallback(); // Startet das Spiel
-      }
-    }, 25);
+  createButtons() {
+    // Prüfe, ob ein Container für die Buttons existiert – ansonsten neu anlegen
+    let container = document.getElementById('startScreenButtons');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'startScreenButtons';
+      // Container als Overlay über dem Canvas platzieren
+      container.style.position = 'absolute';
+      container.style.top = '50%';
+      container.style.left = '50%';
+      container.style.transform = 'translate(-50%, -50%)';
+      container.style.zIndex = '1001';
+      document.body.appendChild(container);
+    }
+
+    // Bestehenden Inhalt löschen (falls vorhanden)
+    container.innerHTML = '';
+
+    // Erstelle den "Spiel starten"-Button
+    const startButton = document.createElement('button');
+    startButton.textContent = 'Spiel starten';
+    startButton.className = 'explanationButton'; // Nutze deine bestehende CSS-Klasse oder passe sie an
+    startButton.addEventListener('click', () => {
+      this.hideStartScreen();
+      this.startCallback(); // Startet das Spiel
+    });
+
+    // Erstelle den "Spielerklärung"-Button
+    const explanationButton = document.createElement('button');
+    explanationButton.textContent = 'Spielerklärung';
+    explanationButton.className = 'explanationButton';
+    explanationButton.addEventListener('click', () => {
+      window.location.href = 'gameinstructions.html';
+    });
+
+    // Füge beide Buttons dem Container hinzu
+    container.appendChild(startButton);
+    container.appendChild(explanationButton);
+  }
+
+  hideStartScreen() {
+    const container = document.getElementById('startScreenButtons');
+    if (container) {
+      container.parentNode.removeChild(container);
+    }
+
+    const touchControls = document.getElementById('touchControls');
+    if (touchControls) {
+      touchControls.style.display = 'none';
+    }
   }
 }

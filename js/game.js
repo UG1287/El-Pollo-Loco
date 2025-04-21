@@ -8,6 +8,13 @@ let soundManager = new SoundManager();
 function init() {
   canvas = document.getElementById('canvas');
   startScreen = new StartScreen(canvas, startGame, keyboard);
+
+  const touchControls = document.getElementById('touchControls');
+  if (touchControls) {
+    touchControls.style.display = 'none';
+  }
+  document.getElementById('mobileImpressumLink').style.display = 'block';
+
 }
 
 function startGame() {
@@ -16,38 +23,35 @@ function startGame() {
     clearCanvas();
     let newLevel = createLevel1();
     world = new World(canvas, keyboard, soundManager, newLevel);
+
+    if (isTouchDevice()) {
+      document.getElementById('touchControls').style.display = 'block';
+    }
+    document.getElementById('mobileImpressumLink').style.display = 'none';
+
+
     setTimeout(() => soundManager.playBackgroundMusic(), 500);
     console.log('Game started');
-    console.log('World:', World);
+
+    setupTouchControls();
   }
 }
-
-function checkOrientation() {
-  const overlay = document.getElementById('orientationOverlay');
-  if (window.matchMedia("(orientation: portrait)").matches) {
-    overlay.style.display = "block";
-  } else {
-    overlay.style.display = "none";
-  }
-}
-
-window.addEventListener("orientationchange", checkOrientation);
-window.addEventListener("resize", checkOrientation);
-document.addEventListener("DOMContentLoaded", checkOrientation);
-
 
 function resetGame() {
   console.log('Neues Spiel wird gestartet (ohne StartScreen)!');
   clearCanvas();
   gameStarted = true;
-
-  // Hier rufst du deine Fabrik-Funktion auf, die alle Gegner & Co. neu erzeugt
   let newLevel = createLevel1();
-
-  // Neue World mit neuem Level
   world = new World(canvas, keyboard, soundManager, newLevel);
 
+  if (isTouchDevice()) {
+    document.getElementById('touchControls').style.display = 'block';
+    document.getElementById('mobileImpressumLink').style.display = 'block';
+
+  }
+
   soundManager.playBackgroundMusic();
+  setupTouchControls();
 }
 
 window.resetGame = resetGame;
@@ -68,7 +72,7 @@ function toggleFullscreen() {
 }
 
 window.addEventListener('keydown', (e) => {
-  console.log('Key pressed:', e.code); // Debugging-Ausgabe
+  console.log('Key pressed:', e.code);
   if (!keyboard) {
     console.error('keyboard object is not initialized!');
     return;
@@ -110,3 +114,69 @@ window.addEventListener('keyup', (e) => {
   }
   if (e.code === 'Enter') keyboard.ENTER = false;
 });
+
+function isTouchDevice() {
+  return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+}
+
+function setupTouchControls() {
+  const touchControls = document.getElementById('touchControls');
+  if (isTouchDevice()) {
+    touchControls.style.display = 'block';
+  } else {
+    touchControls.style.display = 'none';
+  }
+
+  document
+    .getElementById('btnLeft')
+    .addEventListener('touchstart', function (e) {
+      e.preventDefault();
+      keyboard.LEFT = true;
+    });
+  document.getElementById('btnLeft').addEventListener('touchend', function (e) {
+    e.preventDefault();
+    keyboard.LEFT = false;
+  });
+
+  document
+    .getElementById('btnRight')
+    .addEventListener('touchstart', function (e) {
+      e.preventDefault();
+      keyboard.RIGHT = true;
+    });
+  document
+    .getElementById('btnRight')
+    .addEventListener('touchend', function (e) {
+      e.preventDefault();
+      keyboard.RIGHT = false;
+    });
+
+  document
+    .getElementById('btnJump')
+    .addEventListener('touchstart', function (e) {
+      e.preventDefault();
+      keyboard.SPACE = true;
+    });
+  document.getElementById('btnJump').addEventListener('touchend', function (e) {
+    e.preventDefault();
+    keyboard.SPACE = false;
+  });
+
+  document
+    .getElementById('btnThrow')
+    .addEventListener('touchstart', function (e) {
+      e.preventDefault();
+      keyboard.D = true;
+    });
+  document
+    .getElementById('btnThrow')
+    .addEventListener('touchend', function (e) {
+      e.preventDefault();
+      keyboard.D = false;
+    });
+
+  document.getElementById('btnMute').addEventListener('click', function (e) {
+    e.preventDefault();
+    soundManager.toggleMute();
+  });
+}

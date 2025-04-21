@@ -27,54 +27,91 @@ canvas {
   display: block;
 }
 
-.modal {
+.impressum-container {
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 20px;
+  box-sizing: border-box;
+  font-size: 16px;
+}
+
+.explanationButton {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.explanationButton:hover {
+  background-color: #0056b3;
+}
+
+/* Touch Controls Container: Standardmäßig ausgeblendet */
+#touchControls {
   display: none;
   position: fixed;
-  z-index: 1000;
-  left: 0;
-  top: 0;
   width: 100%;
   height: 100%;
-  overflow: auto;
-  background-color: rgba(0, 0, 0, 0.7);
+  pointer-events: none;
 }
 
-.modal-content {
-  background-color: #fff;
-  margin: 10% auto;
-  padding: 20px;
-  width: 80%;
-  max-width: 600px;
-  border-radius: 4px;
-}
-
-.modal-content .close {
-  float: right;
-  font-size: 28px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-#touchControls {
+/* Linke Steuerung – unten links */
+#leftControls {
   position: fixed;
   bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1001;
+  left: 20px;
+  pointer-events: auto;
 }
 
-#touchControls button {
+#leftControls button {
+  width: 60px;
+  height: 60px;
   font-size: 24px;
-  margin: 0 10px;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  background-color: #007bff;
-  color: #fff;
-  cursor: pointer;
+  margin: 5px;
+}
+
+/* Rechte Steuerung – unten rechts */
+#rightControls {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+#touchControls, #mobileImpressumLink {
+  display: none;
 }
 
 
+#rightControls button {
+  width: 60px;
+  height: 60px;
+  font-size: 16px;
+  margin: 5px;
+}
+
+/* Mute Button – oben rechts */
+#btnMute {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  pointer-events: auto;
+  font-size: 20px;
+}
+
+#desktopImpressum {
+  display: block;
+}
 
 /*Smartphones */
 @media only screen and (max-width: 720px) {
@@ -100,3 +137,60 @@ canvas {
     display: block;
   }
 }
+
+@media (max-width: 768px) and (orientation: landscape) {
+  body {
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  #fullscreen {
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: black;
+    z-index: 1;
+  }
+
+  canvas {
+    width: 100vw !important;
+    height: 100vh !important;
+  }
+
+  footer {
+    display: none;
+  }
+
+  #mobileImpressumLink {
+    position: absolute;
+    bottom: 10px;
+    font-size: 14px;
+    text-align: center;
+    width: 100%;
+    z-index: 1002; /* über Buttons aber unter Touchbuttons */
+  }
+  
+  #mobileImpressumLink a {
+    color: purple;
+    text-decoration: underline;
+  }  
+}
+
+@media (max-width: 768px) and (hover: none) and (pointer: coarse) {
+  #touchControls {
+    display: block !important;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  #desktopImpressum {
+    display: none;
+  }
+}
+
+
+
+
+
