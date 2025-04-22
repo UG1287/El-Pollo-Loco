@@ -14,7 +14,6 @@ function init() {
     touchControls.style.display = 'none';
   }
   document.getElementById('mobileImpressumLink').style.display = 'block';
-
 }
 
 function startGame() {
@@ -29,7 +28,6 @@ function startGame() {
     }
     document.getElementById('mobileImpressumLink').style.display = 'none';
 
-
     setTimeout(() => soundManager.playBackgroundMusic(), 500);
     console.log('Game started');
 
@@ -38,21 +36,50 @@ function startGame() {
 }
 
 function resetGame() {
-  console.log('Neues Spiel wird gestartet (ohne StartScreen)!');
-  clearCanvas();
-  gameStarted = true;
-  let newLevel = createLevel1();
-  world = new World(canvas, keyboard, soundManager, newLevel);
+  console.log('► Neues Spiel wird gestartet');
 
-  if (isTouchDevice()) {
-    document.getElementById('touchControls').style.display = 'block';
-    document.getElementById('mobileImpressumLink').style.display = 'block';
+  /* 1) Altes Spiel sauber beenden ‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑ */
+  if (world) {                     // es lief schon eine World‑Instanz
+    world.gameOver = true;         // blockiert alle weiteren Aktionen
 
+    // Charakter‑ & Gegner‑Timer stoppen
+    world.character.stop();
+    world.level.enemies.forEach(e => typeof e.stop === 'function' && e.stop());
+
+    // eventuell weiterlaufende World‑Timer beenden
+    clearInterval(world.collisionIntervalID);
+    clearInterval(world.runIntervalID);
   }
 
+  /* 2) Oberfläche zurücksetzen ‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑ */
+  clearCanvas();
+
+  // Restart‑Button verstecken
+  const restartBtn = document.getElementById('restartButton');
+  if (restartBtn) restartBtn.style.display = 'none';
+
+  // Touch‑UI vorbereiten
+  const touchControls      = document.getElementById('touchControls');
+  const mobileImpressum    = document.getElementById('mobileImpressumLink');
+  if (isTouchDevice()) {
+    touchControls.style.display   = 'block';
+    mobileImpressum.style.display = 'block';
+  } else {
+    touchControls.style.display   = 'none';
+    mobileImpressum.style.display = 'none';
+  }
+
+  /* 3) Frische Spielwelt erzeugen ‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑ */
+  const newLevel = createLevel1();                // ⬅︎ erzeugt neuen Endboss
+  world          = new World(canvas, keyboard, soundManager, newLevel);
+
+  /* 4) Musik & Touch‑Events neu starten ‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑ */
   soundManager.playBackgroundMusic();
   setupTouchControls();
+
+  gameStarted = true;
 }
+
 
 window.resetGame = resetGame;
 

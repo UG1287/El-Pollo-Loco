@@ -45,7 +45,8 @@ class World {
   // Kollisions-Intervall starten und ID speichern
   startCollisionCheck() {
     this.collisionIntervalID = setInterval(() => {
-      if (this.gameOver) {  // ÄNDERUNG: Falls Spiel vorbei, Intervall beenden
+      if (this.gameOver) {
+        // ÄNDERUNG: Falls Spiel vorbei, Intervall beenden
         clearInterval(this.collisionIntervalID);
         return;
       }
@@ -60,10 +61,9 @@ class World {
     });
   }
 
-  // Run-Intervall starten und ID speichern
   run() {
     this.runIntervalID = setInterval(() => {
-      if (this.gameOver) {  // ÄNDERUNG: Falls Spiel vorbei, Intervall beenden
+      if (this.gameOver) {
         clearInterval(this.runIntervalID);
         return;
       }
@@ -75,46 +75,51 @@ class World {
     }, 200);
   }
 
-  // Kollisionsprüfungen – Abbruch, falls gameOver true ist
   checkCollisions() {
-    if (this.gameOver) {
-      return; // Nichts mehr tun, wenn das Spiel vorbei ist
-    }
+    if (this.gameOver) return;
+  
     this.level.enemies.forEach((enemy, index) => {
       if (this.character.isColliding(enemy)) {
-        // Berechne den vertikalen Overlap
         const characterBottom = this.character.y + this.character.height;
-        const enemyTop = enemy.y;
+        const enemyTop        = enemy.y;
         const verticalOverlap = characterBottom - enemyTop;
-
+  
         const isJumpingOnEnemy =
           this.character.speedY < 0 &&
           verticalOverlap > 0 &&
           verticalOverlap < 40;
-
+  
         if (isJumpingOnEnemy) {
-          console.log('✅ Charakter springt auf Gegner!');
-          this.character.speedY = 15; // Rückstoß nach oben
+          console.log('✅ Charakter springt auf Gegner!');
+          this.character.speedY = 15;       // Rückstoß nach oben
           enemy.die();
         } else {
-          if (this.character.energy <= 0) {
-            if (!this.gameOver) { // Nur einmal Game Over auslösen
+          /* ---------- HIER: Dead‑Animation zuerst abspielen ---------- */
+          if (this.character.energy <= 0 && !this.gameOver) {
+  
+            /* 1)  Unverwundbarkeits‑Status jetzt egal – Animation darf laufen   */
+            this.character.energy = 0;          // sicherstellen, dass isDead() true ist
+            
+            /* 2)  Nach 1,5 s Game‑Over‑Screen anzeigen und Flag setzen          */
+            setTimeout(() => {
+              this.gameOver = true;             // Flag erst JETZT blockieren
               this.showGameOverScreen();
-            }
-            return; // Anschließende Verarbeitung beenden
+            }, 1500);                           // Zeit für Dead‑Frames
           }
-          if (!this.character.isHurt()) {
+  
+          /* ---------- normaler Treffer (Hurt‑Animation) ---------- */
+          if (!this.character.isHurt() && this.character.energy > 0) {
             this.character.hit();
-            console.log('🔥 Charakter getroffen!');
-            console.log('💀 Neue HP:', this.character.energy);
+            console.log('🔥 Charakter getroffen!');
             this.statusBar.setPercentage(this.character.energy);
-          } else {
-            console.log('🔹 Charakter ist momentan unverwundbar (Hurt-Cooldown)');
+          } else if (this.character.isHurt()) {
+            console.log('🔹 Charakter ist momentan unverwundbar');
           }
         }
       }
     });
   }
+  
 
   checkThrowObjects() {
     if (this.keyboard.D && this.character.hasBottles()) {
@@ -143,9 +148,12 @@ class World {
           this.throwableObjects.splice(bottleIndex, 1);
           if (enemy.isDead()) {
             console.log(`Gegner besiegt!`);
-            this.level.enemies.splice(enemyIndex, 1);
-            this.showVictoryScreen();
+            setTimeout(() => {
+              this.level.enemies.splice(enemyIndex, 1);
+              this.showVictoryScreen();
+            }, 1500); // Zeit für Dead-Animation
           }
+          
         }
       });
     });
@@ -170,11 +178,8 @@ class World {
   }
 
   showVictoryScreen() {
-    console.log('Victory!');
     this.gameOver = true;
     this.soundManager.stopAllSounds();
-
-    // ÄNDERUNG: Intervalle stoppen
     clearInterval(this.collisionIntervalID);
     clearInterval(this.runIntervalID);
 
@@ -190,12 +195,22 @@ class World {
       this.canvas.height / 2
     );
 
-    this.ctx.font = '28px Arial';
-    this.ctx.fillText(
-      'Want to play again? Press ENTER',
-      this.canvas.width / 2,
-      this.canvas.height / 2 + 60
-    );
+    const restartBtn = document.getElementById('restartButton');
+
+    if (isTouchDevice()) {
+      if (restartBtn) {
+        restartBtn.style.display = 'block';
+        restartBtn.onclick = () => window.resetGame();
+      }
+    } else {
+      this.ctx.font = '28px Arial';
+      this.ctx.fillText(
+        'Want to play again? Press ENTER',
+        this.canvas.width / 2,
+        this.canvas.height / 2 + 60
+      );
+      if (restartBtn) restartBtn.style.display = 'none';
+    }
 
     this.setupVictoryKeyListener();
   }
@@ -204,12 +219,12 @@ class World {
     this.gameOver = true;
     this.soundManager.stopAllSounds();
 
-    // ÄNDERUNG: Intervalle stoppen
     clearInterval(this.collisionIntervalID);
     clearInterval(this.runIntervalID);
 
     const ohNoImg = new Image();
     ohNoImg.src = 'img/9_intro_outro_screens/game_over/OhNo.png';
+
     ohNoImg.onload = () => {
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -220,14 +235,26 @@ class World {
       const imgHeight = 300;
       this.ctx.drawImage(ohNoImg, 0, 0, this.canvas.width, this.canvas.height);
 
-      this.ctx.fillStyle = 'white';
-      this.ctx.font = '20px Arial';
-      this.ctx.textAlign = 'center';
-      this.ctx.fillText(
-        'Try Again? Press ENTER',
-        this.canvas.width / 2,
-        this.canvas.height / 2 + imgHeight / 2 + 20
-      );
+      if (!isTouchDevice()) {
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = '20px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText(
+          'Try Again? Press ENTER',
+          this.canvas.width / 2,
+          this.canvas.height / 2 + imgHeight / 2 + 20
+        );
+      }
+
+      const restartBtn = document.getElementById('restartButton');
+      if (isTouchDevice()) {
+        if (restartBtn) {
+          restartBtn.style.display = 'block';
+          restartBtn.onclick = () => window.resetGame();
+        }
+      } else {
+        if (restartBtn) restartBtn.style.display = 'none';
+      }
     };
 
     this.setupGameOverKeyListener();
@@ -264,7 +291,7 @@ class World {
 
   draw() {
     if (this.gameOver) {
-      return; // Zeichnen beenden, wenn das Spiel vorbei ist
+      return;
     }
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 

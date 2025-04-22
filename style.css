@@ -15,6 +15,12 @@ body {
   font-family: 'Zabars', Arial, Helvetica, sans-serif;
 }
 
+a {
+  text-decoration: none;
+  color: black;
+  font-size: 20px;
+}
+
 h1 {
   text-align: center;
   font-size: 64px;
@@ -37,8 +43,8 @@ canvas {
 
 .explanationButton {
   display: inline-block;
-  padding: 10px 20px;
-  background-color: #007bff;
+  padding: 10px 10px;
+  background-color: orange;
   color: white;
   text-decoration: none;
   border-radius: 4px;
@@ -48,7 +54,7 @@ canvas {
 }
 
 .explanationButton:hover {
-  background-color: #0056b3;
+  background-color: rgb(243, 158, 0);
 }
 
 /* Touch Controls Container: Standardmäßig ausgeblendet */
@@ -58,6 +64,7 @@ canvas {
   width: 100%;
   height: 100%;
   pointer-events: none;
+  background-color: transparent;
 }
 
 /* Linke Steuerung – unten links */
@@ -66,6 +73,7 @@ canvas {
   bottom: 20px;
   left: 20px;
   pointer-events: auto;
+  background-color: transparent;
 }
 
 #leftControls button {
@@ -73,9 +81,9 @@ canvas {
   height: 60px;
   font-size: 24px;
   margin: 5px;
+  background-color: transparent;
 }
 
-/* Rechte Steuerung – unten rechts */
 #rightControls {
   position: fixed;
   bottom: 20px;
@@ -83,21 +91,22 @@ canvas {
   pointer-events: auto;
   display: flex;
   flex-direction: column;
+  background-color: transparent;
 }
 
-#touchControls, #mobileImpressumLink {
+#touchControls,
+#mobileImpressumLink {
   display: none;
 }
-
 
 #rightControls button {
   width: 60px;
   height: 60px;
   font-size: 16px;
   margin: 5px;
+  background-color: transparent;
 }
 
-/* Mute Button – oben rechts */
 #btnMute {
   position: fixed;
   top: 20px;
@@ -107,6 +116,25 @@ canvas {
   border-radius: 50%;
   pointer-events: auto;
   font-size: 20px;
+}
+
+#restartButton {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1003;
+  font-size: 18px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  background-color: orange;
+  color: white;
+  border: none;
+  display: none;
+}
+
+#restartButton:hover {
+  background-color: rgb(248, 166, 13);
 }
 
 #desktopImpressum {
@@ -169,13 +197,13 @@ canvas {
     font-size: 14px;
     text-align: center;
     width: 100%;
-    z-index: 1002; /* über Buttons aber unter Touchbuttons */
+    z-index: 1002;
   }
-  
+
   #mobileImpressumLink a {
     color: purple;
     text-decoration: underline;
-  }  
+  }
 }
 
 @media (max-width: 768px) and (hover: none) and (pointer: coarse) {
@@ -190,7 +218,8 @@ canvas {
   }
 }
 
-
-
-
-
+@media (max-width: 3000px) {
+  #desktopImpressum {
+    display: none;
+  }
+}

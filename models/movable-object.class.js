@@ -67,14 +67,20 @@ class MovableObject extends DrawableObject {
 
   moveRight() {
     this.x += this.speed;
+    clearTimeout(this.idleTimeout);
+  clearTimeout(this.longIdleTimeout);
   }
 
   moveLeft() {
     this.x -= this.speed;
+    clearTimeout(this.idleTimeout);
+  clearTimeout(this.longIdleTimeout);
   }
 
   jump() {
     this.speedY = 25;
+    clearTimeout(this.idleTimeout);
+  clearTimeout(this.longIdleTimeout);
   }
 
   getTop() {

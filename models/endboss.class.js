@@ -2,10 +2,16 @@ class Endboss extends MovableObject {
   y = 0;
   height = 450;
   width = 300;
-  speed = 1.9; // Wie schnell läuft er?
-  energy = 50; // HP
-  chaseRange = 1000; // Bis zu welcher Distanz soll er den Spieler „wahrnehmen“?
-  minDistance = 100; // Falls er zu nah an den Player kommt, soll er evtl. Attack machen statt weiterlaufen
+  speed = 1.9;
+  energy = 50;
+  chaseRange = 1000;
+  minDistance = 100;
+
+  // Interval‑IDs, um sie später stoppen zu können
+  movementIntervalID;
+  animationIntervalID;
+  deadIntervalID;
+  deadPlayed = false;
 
   IMAGES_ALERT = [
     'img/4_enemie_boss_chicken/2_alert/G5.png',
@@ -39,68 +45,73 @@ class Endboss extends MovableObject {
   ];
 
   constructor(xPos) {
-    // Startet mit ALERT-Bild
-    super().loadImage('img/4_enemie_boss_chicken/2_alert/G5.png');
-    this.x = xPos; // z. B. 3000 in level1.js
-
+    super().loadImage(this.IMAGES_ALERT[0]);
+    this.x = xPos;
     this.loadImages(this.IMAGES_ALERT);
     this.loadImages(this.IMAGES_ATTACK);
     this.loadImages(this.IMAGES_HURT);
     this.loadImages(this.IMAGES_DEAD);
-
     this.animate();
   }
 
   animate() {
-    setInterval(() => {
+    // 1) Bewegung auf den Spieler zu
+    this.movementIntervalID = setInterval(() => {
       if (!this.world || this.isDead()) return;
-
-      // Distance in X-Richtung: center(boss) - center(character)
       let bossCenter = this.x + this.width / 2;
       let charCenter = this.world.character.x + this.world.character.width / 2;
       let distX = charCenter - bossCenter;
 
-      // chaseRange = 1000, minDistance = 40, anpassbar
-      // 1) Ist Spieler im Sichtbereich?
-      if (Math.abs(distX) < this.chaseRange) {
-        // 2) Greift er an, oder soll er laufen?
-        // Sagen wir, bei distX < 0 => Char ist links, distX > 0 => Char ist rechts
-        if (Math.abs(distX) > this.minDistance) {
-          // Boss bewegt sich auf Character zu
-          if (distX > 0) {
-            // Charakter ist rechts => Boss guckt nach rechts
-            this.otherDirection = true; // Falls dein Sprite standardmäßig nach rechts "schaut"
-            this.moveRight();
-          } else {
-            // distX < 0 => Charakter links => Boss guckt nach links
-            this.otherDirection = false;
-            this.moveLeft();
-          }
+      if (Math.abs(distX) < this.chaseRange && Math.abs(distX) > this.minDistance) {
+        if (distX > 0) {
+          this.otherDirection = true;
+          this.moveRight();
         } else {
-          // Wir sind dicht genug (distX <= minDistance) → Attack z.B.
-          // ... Hier Attack-Animation oder Stillstand ...
+          this.otherDirection = false;
+          this.moveLeft();
         }
       }
     }, 1000 / 60);
 
-    // Genauso dein Animations-Intervall wie gehabt
-    setInterval(() => {
+    // 2) Animations‑Loop
+    this.animationIntervalID = setInterval(() => {
       if (this.isDead()) {
-        this.playAnimation(this.IMAGES_DEAD);
+        // Tod erstmals erkennen und Dead‑Sequenz starten
+        if (!this.deadPlayed) {
+          this.deadPlayed = true;
+          clearInterval(this.movementIntervalID);
+          clearInterval(this.animationIntervalID);
+          this.playDeadSequence();
+        }
       } else if (this.isHurt()) {
         this.playAnimation(this.IMAGES_HURT);
       } else {
-        // Attack oder Alert, je nach Abstand
+        // Normaler Zustand: alert oder attack
         let bossCenter = this.x + this.width / 2;
-        let charCenter =
-          this.world.character.x + this.world.character.width / 2;
+        let charCenter = this.world.character.x + this.world.character.width / 2;
         let distX = charCenter - bossCenter;
-
         if (Math.abs(distX) < this.minDistance) {
           this.playAnimation(this.IMAGES_ATTACK);
         } else {
           this.playAnimation(this.IMAGES_ALERT);
         }
+      }
+    }, 200);
+  }
+
+  /**
+   * Spielt die Dead‑Animation einmal komplett durch.
+   */
+  playDeadSequence() {
+    let idx = 0;
+    this.deadIntervalID = setInterval(() => {
+      if (idx < this.IMAGES_DEAD.length) {
+        // jeweiliges Dead‑Frame setzen
+        const path = this.IMAGES_DEAD[idx];
+        this.img = this.imageCache[path];
+        idx++;
+      } else {
+        clearInterval(this.deadIntervalID);
       }
     }, 200);
   }
@@ -112,12 +123,14 @@ class Endboss extends MovableObject {
 
   takeDamage() {
     this.energy -= 20;
-    console.log(`Endboss hat jetzt ${this.energy} HP`);
-    if (this.energy <= 0) {
-      this.energy = 0;
-    } else {
-      // HURT-Animation => isHurt()
+    if (this.energy < 0) this.energy = 0;
+    if (this.energy > 0) {
       this.lastHit = new Date().getTime();
     }
+  }
+
+  stop() {
+    clearInterval(this.moveInterval);
+    clearInterval(this.animInterval);
   }
 }
