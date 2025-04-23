@@ -4,10 +4,11 @@ class Character extends MovableObject {
   bottleCount = 0;
   world;
   speed = 10;
-  movementIntervalID;
-  animationIntervalID;
-  deadIntervalID;
+  movementIntervalID = null;
+  animationIntervalID = null;
+  deadIntervalID = null;
   deadPlayed = false;
+  lastAction = Date.now();
 
   IMAGES_WALKING = [
     'img/2_character_pepe/2_walk/W-21.png',
@@ -52,7 +53,7 @@ class Character extends MovableObject {
     'img/2_character_pepe/1_idle/idle/I-7.png',
     'img/2_character_pepe/1_idle/idle/I-8.png',
     'img/2_character_pepe/1_idle/idle/I-9.png',
-    'img/2_character_pepe/1_idle/idle/I-10.png'
+    'img/2_character_pepe/1_idle/idle/I-10.png',
   ];
   IMAGES_LONG_IDLE = [
     'img/2_character_pepe/1_idle/long_idle/I-11.png',
@@ -95,41 +96,22 @@ class Character extends MovableObject {
     if (this.bottleCount > 0) this.bottleCount--;
   }
 
-  checkIdleState() {
-    clearTimeout(this.idleTimeout);
-    clearTimeout(this.longIdleTimeout);
-    if (!this.isMoving() && !this.isHurt()) {
-      this.idleTimeout = setTimeout(() => this.playIdleAnimation(), 5000);
-      this.longIdleTimeout = setTimeout(() => this.playLongIdleAnimation(), 15000);
-    }
-  }
-
-  playIdleAnimation() {
-    this.playAnimation(this.IMAGES_IDLE);
-  }
-
-  playLongIdleAnimation() {
-    this.playAnimation(this.IMAGES_LONG_IDLE);
-  }
-
   animate() {
-    // 1) Bewegung & Input‑Handler
     this.movementIntervalID = setInterval(() => {
       if (!this.world || this.world.gameOver) return;
-
       const k = this.world.keyboard;
       if (k.RIGHT && this.x < this.world.level.level_end_x) {
-        this.moveRight(); this.otherDirection = false;
+        this.moveRight();
+        this.otherDirection = false;
       }
       if (k.LEFT && this.x > 0) {
-        this.moveLeft(); this.otherDirection = true;
+        this.moveLeft();
+        this.otherDirection = true;
       }
       if (k.SPACE && !this.isAboveGround()) this.jump();
-
       this.world.camera_x = -this.x + 100;
     }, 1000 / 60);
 
-    // 2) Animations‑Loop
     this.animationIntervalID = setInterval(() => {
       if (!this.world || this.world.gameOver) return;
 
@@ -140,40 +122,47 @@ class Character extends MovableObject {
           clearInterval(this.animationIntervalID);
           this.playDeadSequence();
         }
+        return;
       }
-      else if (this.isHurt()) {
+
+      if (this.isHurt()) {
         this.playAnimation(this.IMAGES_HURT);
+        return;
       }
-      else if (this.isAboveGround()) {
+
+      if (this.isAboveGround()) {
         this.playAnimation(this.IMAGES_JUMPING);
+        return;
       }
-      else if (this.world.keyboard.RIGHT || this.world.keyboard.LEFT) {
-        this.playAnimation(this.IMAGES_WALKING);
-      }
-      else {
+
+      const idleMs = Date.now() - this.lastAction;
+      if (idleMs > 15000) {
+        this.playAnimation(this.IMAGES_LONG_IDLE);
+      } else if (idleMs > 5000) {
         this.playAnimation(this.IMAGES_IDLE);
+      } else if (this.world.keyboard.RIGHT || this.world.keyboard.LEFT) {
+        this.playAnimation(this.IMAGES_WALKING);
       }
     }, 100);
   }
 
   playDeadSequence() {
-    let idx = 0;
+    let i = 0;
     this.deadIntervalID = setInterval(() => {
-      if (idx < this.IMAGES_DEAD.length) {
-        const path = this.IMAGES_DEAD[idx++];
-        this.img = this.imageCache[path];
+      if (i < this.IMAGES_DEAD.length) {
+        const imgPath = this.IMAGES_DEAD[i++];
+        this.img = this.imageCache[imgPath];
       } else {
         clearInterval(this.deadIntervalID);
-        // Jetzt erst das Game Over anzeigen
         this.world.showGameOverScreen();
       }
     }, 200);
   }
 
   stop() {
-    clearTimeout(this.idleTimeout);
-    clearTimeout(this.longIdleTimeout);
-    // evtl. weitere Timer, z. B. applyGravity‑/animate‑Interval
+    clearInterval(this.movementIntervalID);
+    clearInterval(this.animationIntervalID);
+    clearInterval(this.deadIntervalID);
   }
 
   jump() {

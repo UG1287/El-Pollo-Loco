@@ -33,28 +33,24 @@ class MovableObject extends DrawableObject {
   }
 
   hit() {
+    if (this.world && this.world.soundManager) { this.world.soundManager.playSound('hit'); }
+
+    this.lastAction = Date.now();
     this.energy -= 5;
-    if (this.energy < 0) {
-      this.energy = 0;
-    } else {
-      this.lastHit = new Date().getTime();
-    }
+    if (this.energy < 0) this.energy = 0;
+    else this.lastHit = Date.now();
   }
 
   isHurt() {
-    let timepassed = new Date().getTime() - this.lastHit; //Difference in ms
-    timepassed = timepassed / 1000;
-    return timepassed < 0.7;
+    const timePassed = (Date.now() - this.lastHit) / 1000;
+    return timePassed < 0.7;
   }
 
   takeDamage() {
-    // ❗❗ Gegner nimmt Schaden ❗❗
     this.energy -= 50;
-    console.log(`Gegner hat jetzt ${this.energy} HP`);
   }
 
   isDead() {
-    // ❗❗ Prüft, ob Gegner tot ist ❗❗
     return this.energy <= 0;
   }
 
@@ -66,21 +62,24 @@ class MovableObject extends DrawableObject {
   }
 
   moveRight() {
+    this.lastAction = Date.now();
     this.x += this.speed;
     clearTimeout(this.idleTimeout);
-  clearTimeout(this.longIdleTimeout);
+    clearTimeout(this.longIdleTimeout);
   }
 
   moveLeft() {
+    this.lastAction = Date.now();
     this.x -= this.speed;
     clearTimeout(this.idleTimeout);
-  clearTimeout(this.longIdleTimeout);
+    clearTimeout(this.longIdleTimeout);
   }
 
   jump() {
+    this.lastAction = Date.now();
     this.speedY = 25;
     clearTimeout(this.idleTimeout);
-  clearTimeout(this.longIdleTimeout);
+    clearTimeout(this.longIdleTimeout);
   }
 
   getTop() {

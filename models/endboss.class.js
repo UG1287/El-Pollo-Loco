@@ -129,6 +129,12 @@ class Endboss extends MovableObject {
     }
   }
 
+  setWorld(world) {
+    this.world = world;
+    this.animate();          // erst jetzt starten
+  }
+  
+
   stop() {
     clearInterval(this.moveInterval);
     clearInterval(this.animInterval);

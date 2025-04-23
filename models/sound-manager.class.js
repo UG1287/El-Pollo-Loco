@@ -36,11 +36,14 @@ class SoundManager {
 
   playBackgroundMusic() {
     const bg = this.sounds['background'];
-    if (!this.muted && bg && bg.paused) {
-      bg.play().catch((e) =>
-        console.warn('Hintergrundmusik konnte nicht abgespielt werden:', e)
-      );
-    }
+    if (!bg || this.muted) return;
+
+    if (!bg.paused) bg.pause();
+    bg.currentTime = 0;
+
+    bg.play().catch((e) =>
+      console.warn('Hintergrundmusik konnte nicht abgespielt werden:', e)
+    );
   }
 
   toggleMute() {
@@ -53,10 +56,10 @@ class SoundManager {
   }
 
   stopBackgroundMusic() {
-    if (this.sounds['background']) {
-      this.sounds['background'].pause();
-      this.sounds['background'].currentTime = 0;
-    }
+    const bg = this.sounds['background'];
+    if (!bg) return;
+    bg.pause();
+    bg.currentTime = 0;
   }
 
   stopAllSounds() {
@@ -69,5 +72,10 @@ class SoundManager {
         console.warn(`Fehler beim Stoppen von "${soundKey}":`, e);
       }
     }
+  }
+
+  reset() {
+    this.stopAllSounds();
+    this.muted = false;
   }
 }

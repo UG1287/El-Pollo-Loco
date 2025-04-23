@@ -8,8 +8,7 @@ let soundManager = new SoundManager();
 function init() {
   canvas = document.getElementById('canvas');
   startScreen = new StartScreen(canvas, startGame, keyboard);
-
-  const touchControls = document.getElementById('touchControls');
+  let touchControls = document.getElementById('touchControls');
   if (touchControls) {
     touchControls.style.display = 'none';
   }
@@ -22,64 +21,46 @@ function startGame() {
     clearCanvas();
     let newLevel = createLevel1();
     world = new World(canvas, keyboard, soundManager, newLevel);
-
     if (isTouchDevice()) {
       document.getElementById('touchControls').style.display = 'block';
     }
     document.getElementById('mobileImpressumLink').style.display = 'none';
-
     setTimeout(() => soundManager.playBackgroundMusic(), 500);
     console.log('Game started');
-
     setupTouchControls();
   }
 }
 
 function resetGame() {
-  console.log('► Neues Spiel wird gestartet');
-
-  /* 1) Altes Spiel sauber beenden ‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑ */
-  if (world) {                     // es lief schon eine World‑Instanz
-    world.gameOver = true;         // blockiert alle weiteren Aktionen
-
-    // Charakter‑ & Gegner‑Timer stoppen
+  if (world) {
+    world.gameOver = true;
     world.character.stop();
-    world.level.enemies.forEach(e => typeof e.stop === 'function' && e.stop());
-
-    // eventuell weiterlaufende World‑Timer beenden
+    world.level.enemies.forEach(
+      (e) => typeof e.stop === 'function' && e.stop()
+    );
     clearInterval(world.collisionIntervalID);
     clearInterval(world.runIntervalID);
   }
-
-  /* 2) Oberfläche zurücksetzen ‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑ */
+  soundManager.reset();
+  soundManager.stopBackgroundMusic();
+  setTimeout(() => soundManager.playBackgroundMusic(), 150);
   clearCanvas();
-
-  // Restart‑Button verstecken
-  const restartBtn = document.getElementById('restartButton');
+  let restartBtn = document.getElementById('restartButton');
   if (restartBtn) restartBtn.style.display = 'none';
-
-  // Touch‑UI vorbereiten
-  const touchControls      = document.getElementById('touchControls');
-  const mobileImpressum    = document.getElementById('mobileImpressumLink');
+  let touchControls = document.getElementById('touchControls');
+  let mobileImpressum = document.getElementById('mobileImpressumLink');
   if (isTouchDevice()) {
-    touchControls.style.display   = 'block';
+    touchControls.style.display = 'block';
     mobileImpressum.style.display = 'block';
   } else {
-    touchControls.style.display   = 'none';
+    touchControls.style.display = 'none';
     mobileImpressum.style.display = 'none';
   }
-
-  /* 3) Frische Spielwelt erzeugen ‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑ */
-  const newLevel = createLevel1();                // ⬅︎ erzeugt neuen Endboss
-  world          = new World(canvas, keyboard, soundManager, newLevel);
-
-  /* 4) Musik & Touch‑Events neu starten ‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑ */
-  soundManager.playBackgroundMusic();
+  let newLevel = createLevel1();
+  world = new World(canvas, keyboard, soundManager, newLevel);
   setupTouchControls();
-
   gameStarted = true;
 }
-
 
 window.resetGame = resetGame;
 
@@ -110,7 +91,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'ArrowUp') keyboard.UP = true;
   if (e.code === 'ArrowDown') keyboard.DOWN = true;
   if (e.code === 'Space') keyboard.SPACE = true;
-  if (e.code === 'KeyD') keyboard.D = true;
+  if (e.code === 'KeyD'&& world) {world.tryThrowBottle();}
   if (e.code === 'Enter') keyboard.ENTER = true;
   if (e.code === 'KeyM') {
     soundManager.toggleMute();
@@ -191,10 +172,10 @@ function setupTouchControls() {
 
   document
     .getElementById('btnThrow')
-    .addEventListener('touchstart', function (e) {
+    .addEventListener('touchstart', e => {
       e.preventDefault();
-      keyboard.D = true;
-    });
+      if (world) world.tryThrowBottle();
+  });
   document
     .getElementById('btnThrow')
     .addEventListener('touchend', function (e) {

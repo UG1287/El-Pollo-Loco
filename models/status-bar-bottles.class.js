@@ -11,14 +11,14 @@ class BottleStatusBar extends DrawableObject {
     constructor() {
       super();
       this.loadImages(this.IMAGES);
-      this.x = 400; // Position rechts neben der Coin-Statusbar
+      this.x = 400;
       this.y = 0;
       this.width = 180;
       this.height = 60;
-      this.setBottles(3); // Startwert
+      this.setBottles(0, 1);
     }
   
-    setBottles(bottlesCollected, totalBottles = 10) {
+    setBottles(bottlesCollected, totalBottles) {
       if (totalBottles === 0) {
           console.warn("⚠️ totalBottles ist 0 – Division durch 0 verhindert.");
           return;
@@ -28,7 +28,7 @@ class BottleStatusBar extends DrawableObject {
       let path = this.IMAGES[index];
   
       console.log(`Setze BottleStatusBar-Bild: ${path}`);
-      this.loadImage(path); // ❗ Setzt das neue Bild
+      this.loadImage(path);
   }
   
   

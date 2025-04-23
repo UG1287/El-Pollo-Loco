@@ -11,11 +11,10 @@ class World {
   totalCoins;
   soundManager;
   bottleStatusBar = new BottleStatusBar();
-  gameOver = false; // NEU: Flag, ob das Spiel vorbei ist
-
-  // Intervalle speichern – so können wir sie später abbrechen:
+  gameOver = false;
   collisionIntervalID;
   runIntervalID;
+  lastThrow = 0;
 
   constructor(canvas, keyboard, soundManager, level) {
     this.ctx = canvas.getContext('2d');
@@ -24,29 +23,20 @@ class World {
     this.soundManager = soundManager;
     this.totalCoins = level.coins.length;
     this.level = level;
+    this.totalBottles = level.bottles.length;
 
-    // Setze den world-Referenz für alle Gegner:
     this.level.enemies.forEach((e) => (e.world = this));
-    // Falls du Clouds oder Sonstiges auch brauchst:
-    // this.level.clouds.forEach(cloud => cloud.world = this);
-
-    // Character bekommt sofort sein world-Objekt:
     this.setWorld();
     this.character.setWorld(this);
 
-    // Zeichnen & Bewegungen starten:
     this.draw();
-    // Checks im 200ms-Intervall starten:
     this.run();
-    // Kollisions-Check alle 25ms:
     this.startCollisionCheck();
   }
 
-  // Kollisions-Intervall starten und ID speichern
   startCollisionCheck() {
     this.collisionIntervalID = setInterval(() => {
       if (this.gameOver) {
-        // ÄNDERUNG: Falls Spiel vorbei, Intervall beenden
         clearInterval(this.collisionIntervalID);
         return;
       }
@@ -56,8 +46,9 @@ class World {
 
   setWorld() {
     this.character.world = this;
-    this.level.enemies.forEach((enemy) => {
-      enemy.world = this;
+    this.level.enemies.forEach((e) => {
+      e.world = this;
+      if (typeof e.setWorld === 'function') e.setWorld(this);
     });
   }
 
@@ -68,7 +59,6 @@ class World {
         return;
       }
       console.log('run() läuft');
-      this.checkThrowObjects();
       this.checkCoinCollection();
       this.checkBottleCollection();
       this.checkBottleCollisions();
@@ -77,37 +67,35 @@ class World {
 
   checkCollisions() {
     if (this.gameOver) return;
-  
+
     this.level.enemies.forEach((enemy, index) => {
       if (this.character.isColliding(enemy)) {
         const characterBottom = this.character.y + this.character.height;
-        const enemyTop        = enemy.y;
+        const enemyTop = enemy.y;
         const verticalOverlap = characterBottom - enemyTop;
-  
+
         const isJumpingOnEnemy =
           this.character.speedY < 0 &&
           verticalOverlap > 0 &&
           verticalOverlap < 40;
-  
+
         if (isJumpingOnEnemy) {
           console.log('✅ Charakter springt auf Gegner!');
-          this.character.speedY = 15;       // Rückstoß nach oben
+          this.character.speedY = 15; // Rückstoß nach oben
           enemy.die();
         } else {
           /* ---------- HIER: Dead‑Animation zuerst abspielen ---------- */
           if (this.character.energy <= 0 && !this.gameOver) {
-  
             /* 1)  Unverwundbarkeits‑Status jetzt egal – Animation darf laufen   */
-            this.character.energy = 0;          // sicherstellen, dass isDead() true ist
-            
+            this.character.energy = 0; // sicherstellen, dass isDead() true ist
+
             /* 2)  Nach 1,5 s Game‑Over‑Screen anzeigen und Flag setzen          */
             setTimeout(() => {
-              this.gameOver = true;             // Flag erst JETZT blockieren
+              this.gameOver = true; // Flag erst JETZT blockieren
               this.showGameOverScreen();
-            }, 1500);                           // Zeit für Dead‑Frames
+            }, 1500); // Zeit für Dead‑Frames
           }
-  
-          /* ---------- normaler Treffer (Hurt‑Animation) ---------- */
+
           if (!this.character.isHurt() && this.character.energy > 0) {
             this.character.hit();
             console.log('🔥 Charakter getroffen!');
@@ -119,45 +107,56 @@ class World {
       }
     });
   }
-  
 
-  checkThrowObjects() {
-    if (this.keyboard.D && this.character.hasBottles()) {
-      console.log('Flasche wird geworfen!');
-      let direction = this.character.otherDirection ? -1 : 1;
-      let bottle = new ThrowableObject(
-        this.character.x + 50 * direction,
-        this.character.y + 100,
-        direction
-      );
-      this.throwableObjects.push(bottle);
-      this.character.useBottle();
-      this.bottleStatusBar.setBottles(this.character.bottleCount);
-      if (this.soundManager) {
-        this.soundManager.playSound('throw');
-      }
-    }
+  tryThrowBottle() {
+    const now = Date.now();
+
+    if (now - this.lastThrow < 150) return;
+    if (!this.character.hasBottles()) return;
+    let dir = this.character.otherDirection ? -1 : 1;
+    let bottle = new ThrowableObject(
+      this.character.x + 50 * dir,
+      this.character.y + 100,
+      dir
+    );
+    this.throwableObjects.push(bottle);
+    this.character.useBottle();
+    this.bottleStatusBar.setBottles(
+      this.character.bottleCount,
+      this.totalBottles
+    );
+    this.soundManager.playSound('throw');
+    this.lastThrow = now;
   }
 
   checkBottleCollisions() {
-    this.throwableObjects.forEach((bottle, bottleIndex) => {
-      this.level.enemies.forEach((enemy, enemyIndex) => {
+    for (let i = 0; i < this.throwableObjects.length; i++) {
+      const bottle = this.throwableObjects[i];
+  
+      for (let j = 0; j < this.level.enemies.length; j++) {
+        const enemy = this.level.enemies[j];
+  
         if (bottle.isColliding(enemy)) {
-          console.log(`Flasche trifft Gegner!`);
-          enemy.takeDamage();
-          this.throwableObjects.splice(bottleIndex, 1);
-          if (enemy.isDead()) {
-            console.log(`Gegner besiegt!`);
-            setTimeout(() => {
-              this.level.enemies.splice(enemyIndex, 1);
-              this.showVictoryScreen();
-            }, 1500); // Zeit für Dead-Animation
+  
+          /* ------------- Schaden anrichten ------------- */
+          if (enemy instanceof Endboss) {
+            enemy.takeDamage();                // –20 HP
+            if (enemy.isDead() && !this.gameOver) {
+              setTimeout(() => this.showVictoryScreen(), 1500);
+            }
+          } else {
+            enemy.die();                       // normales Huhn: sofort tot
           }
-          
+          this.soundManager.playSound('bottle_break');
+          /* ------------- Flasche ENTGÜLTIG zerstören ------------- */
+          this.throwableObjects.splice(i, 1);  // aus Array entfernen
+          i--;                                 // Index korrigieren
+          break;                               // ► bricht die innere enemies-Schleife ab
         }
-      });
-    });
+      }
+    }
   }
+  
 
   setupVictoryKeyListener() {
     let checkVictory = setInterval(() => {
@@ -180,6 +179,7 @@ class World {
   showVictoryScreen() {
     this.gameOver = true;
     this.soundManager.stopAllSounds();
+    this.soundManager.playSound('victory');
     clearInterval(this.collisionIntervalID);
     clearInterval(this.runIntervalID);
 
@@ -218,6 +218,7 @@ class World {
   showGameOverScreen() {
     this.gameOver = true;
     this.soundManager.stopAllSounds();
+    this.soundManager.playSound('lose');
 
     clearInterval(this.collisionIntervalID);
     clearInterval(this.runIntervalID);
@@ -270,6 +271,7 @@ class World {
         console.log('Coin eingesammelt!');
         this.level.coins.splice(index, 1);
         this.coinsCollected++;
+        this.soundManager.playSound('coin');
         this.coinStatusBar.setCoins(this.coinsCollected, this.totalCoins);
       }
     });
@@ -279,9 +281,13 @@ class World {
     if (!this.level.bottles) return;
     this.level.bottles.forEach((bottle, index) => {
       if (this.character.isColliding(bottle)) {
+        bottle.stop();
         this.level.bottles.splice(index, 1);
         this.character.collectBottle();
-        this.bottleStatusBar.setBottles(this.character.bottleCount);
+        this.bottleStatusBar.setBottles(
+          this.character.bottleCount,
+          this.totalBottles
+        );
         if (this.soundManager) {
           this.soundManager.playSound('bottle_pickup');
         }

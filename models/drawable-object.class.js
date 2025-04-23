@@ -9,7 +9,7 @@ class DrawableObject {
 
   loadImage(path) {
     if (this.imageCache[path]) {
-      this.img = this.imageCache[path]; // Falls bereits vorgeladen, direkt setzen
+      this.img = this.imageCache[path];
       console.log('✅ Bild aus Cache geladen:', path);
     } else {
       this.img = new Image();
@@ -32,13 +32,11 @@ class DrawableObject {
     }
 
     if (!this.img.complete) {
-      // Nur Info – kein return!
       console.log(
         `${this.constructor.name}: Bild ist noch nicht fertig, zeichnen aber trotzdem...`
       );
     }
 
-    // Zeichnung findet IMMER statt
     ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
   }
 

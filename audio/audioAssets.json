@@ -3,6 +3,9 @@
     "jump": "audio/jump.mp3",
     "hit": "audio/hit.mp3",
     "throw": "audio/throw.mp3",
-    "coin": "audio/coin.mp3"
-  }
+    "coin": "audio/coin.mp3",
+    "bottle_break": "audio/bottle-break.mp3",
+    "lose": "audio/loose.mp3",
+    "victory": "audio/victory.mp3"
+}
   
