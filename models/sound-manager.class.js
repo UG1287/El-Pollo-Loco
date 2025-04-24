@@ -11,48 +11,46 @@ class SoundManager {
       const audioData = await response.json();
 
       for (const [key, path] of Object.entries(audioData)) {
-        this.sounds[key] = new Audio(path);
-        this.sounds[key].volume = 0.7;
+        const a = new Audio(path);
+        a.volume = 0.7;
+        a.loop = key === 'background';
+        a.muted = this.muted;
+        this.sounds[key] = a;
       }
-
-      this.sounds['background'].loop = true;
-    } catch (error) {
-      console.error('Error loading audio assets:', error);
+    } catch (err) {
+      console.error('Error loading audio assets:', err);
     }
   }
 
   playSound(name) {
-    if (!this.muted && this.sounds[name]) {
-      try {
-        this.sounds[name].currentTime = 0;
-        this.sounds[name].play().catch((e) => {
-          console.warn(`Sound "${name}" konnte nicht abgespielt werden:`, e);
-        });
-      } catch (e) {
-        console.warn(`Fehler beim Start von "${name}":`, e);
-      }
+    const a = this.sounds[name];
+    if (!a) return;
+
+    try {
+      a.currentTime = 0;
+      a.play().catch(e =>
+        console.warn(`Sound "${name}" konnte nicht abgespielt werden:`, e)
+      );
+    } catch (e) {
+      console.warn(`Fehler beim Start von "${name}":`, e);
     }
   }
 
   playBackgroundMusic() {
     const bg = this.sounds['background'];
-    if (!bg || this.muted) return;
+    if (!bg) return;
 
-    if (!bg.paused) bg.pause();
+    bg.pause();
     bg.currentTime = 0;
-
-    bg.play().catch((e) =>
+    bg.play().catch(e =>
       console.warn('Hintergrundmusik konnte nicht abgespielt werden:', e)
     );
   }
 
   toggleMute() {
     this.muted = !this.muted;
-    if (this.muted) {
-      this.sounds['background'].pause();
-    } else {
-      this.playBackgroundMusic();
-    }
+    Object.values(this.sounds).forEach(a => (a.muted = this.muted));
+    if (!this.muted) this.playBackgroundMusic();
   }
 
   stopBackgroundMusic() {
@@ -63,19 +61,13 @@ class SoundManager {
   }
 
   stopAllSounds() {
-    for (const soundKey in this.sounds) {
-      let audio = this.sounds[soundKey];
-      try {
-        audio.pause();
-        audio.currentTime = 0;
-      } catch (e) {
-        console.warn(`Fehler beim Stoppen von "${soundKey}":`, e);
-      }
-    }
+    Object.values(this.sounds).forEach(a => {
+      a.pause();
+      a.currentTime = 0;
+    });
   }
 
   reset() {
     this.stopAllSounds();
-    this.muted = false;
   }
 }

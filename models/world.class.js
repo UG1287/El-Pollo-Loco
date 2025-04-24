@@ -31,17 +31,6 @@ class World {
 
     this.draw();
     this.run();
-    this.startCollisionCheck();
-  }
-
-  startCollisionCheck() {
-    this.collisionIntervalID = setInterval(() => {
-      if (this.gameOver) {
-        clearInterval(this.collisionIntervalID);
-        return;
-      }
-      this.checkCollisions();
-    }, 25);
   }
 
   setWorld() {
@@ -58,7 +47,6 @@ class World {
         clearInterval(this.runIntervalID);
         return;
       }
-      console.log('run() läuft');
       this.checkCoinCollection();
       this.checkBottleCollection();
       this.checkBottleCollisions();
@@ -132,31 +120,29 @@ class World {
   checkBottleCollisions() {
     for (let i = 0; i < this.throwableObjects.length; i++) {
       const bottle = this.throwableObjects[i];
-  
+
       for (let j = 0; j < this.level.enemies.length; j++) {
         const enemy = this.level.enemies[j];
-  
+
         if (bottle.isColliding(enemy)) {
-  
           /* ------------- Schaden anrichten ------------- */
           if (enemy instanceof Endboss) {
-            enemy.takeDamage();                // –20 HP
+            enemy.takeDamage(); // –20 HP
             if (enemy.isDead() && !this.gameOver) {
               setTimeout(() => this.showVictoryScreen(), 1500);
             }
           } else {
-            enemy.die();                       // normales Huhn: sofort tot
+            enemy.die(); // normales Huhn: sofort tot
           }
           this.soundManager.playSound('bottle_break');
           /* ------------- Flasche ENTGÜLTIG zerstören ------------- */
-          this.throwableObjects.splice(i, 1);  // aus Array entfernen
-          i--;                                 // Index korrigieren
-          break;                               // ► bricht die innere enemies-Schleife ab
+          this.throwableObjects.splice(i, 1); // aus Array entfernen
+          i--; // Index korrigieren
+          break; // ► bricht die innere enemies-Schleife ab
         }
       }
     }
   }
-  
 
   setupVictoryKeyListener() {
     let checkVictory = setInterval(() => {
@@ -318,6 +304,7 @@ class World {
     this.addObjectsToMap(this.level.bottles);
 
     this.ctx.translate(-this.camera_x, 0);
+    this.checkCollisions();
 
     requestAnimationFrame(() => {
       this.draw();

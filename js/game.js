@@ -15,6 +15,26 @@ function init() {
   document.getElementById('mobileImpressumLink').style.display = 'block';
 }
 
+/* --- Orientation-Overlay -------------------------------------------------- */
+function handleOrientation(){
+  const overlay = document.getElementById('orientationOverlay');
+  if (!overlay) return;
+
+  if (isTouchDevice()){
+    /* Portrait ⇒ Overlay anzeigen, Landscape ⇒ verstecken */
+    const isPortrait = window.matchMedia('(orientation:portrait)').matches;
+    overlay.style.display = isPortrait ? 'flex' : 'none';
+  }else{
+    overlay.style.display = 'none';
+  }
+}
+
+/* bei Lade- und Dreh-Events prüfen */
+window.addEventListener('load', handleOrientation);
+window.addEventListener('orientationchange', handleOrientation);
+window.addEventListener('resize', handleOrientation);
+
+
 function startGame() {
   if (!gameStarted) {
     gameStarted = true;
@@ -25,9 +45,10 @@ function startGame() {
       document.getElementById('touchControls').style.display = 'block';
     }
     document.getElementById('mobileImpressumLink').style.display = 'none';
-    setTimeout(() => soundManager.playBackgroundMusic(), 500);
-    console.log('Game started');
+    if (!soundManager.muted){          //  <<<  NEU
+      setTimeout(()=>soundManager.playBackgroundMusic(), 500);}
     setupTouchControls();
+    
   }
 }
 
@@ -43,7 +64,9 @@ function resetGame() {
   }
   soundManager.reset();
   soundManager.stopBackgroundMusic();
-  setTimeout(() => soundManager.playBackgroundMusic(), 150);
+  if (!soundManager.muted){          //  <<<  NEU
+    (soundManager.playBackgroundMusic(), 150);
+  }
   clearCanvas();
   let restartBtn = document.getElementById('restartButton');
   if (restartBtn) restartBtn.style.display = 'none';
@@ -80,7 +103,6 @@ function toggleFullscreen() {
 }
 
 window.addEventListener('keydown', (e) => {
-  console.log('Key pressed:', e.code);
   if (!keyboard) {
     console.error('keyboard object is not initialized!');
     return;
@@ -184,6 +206,10 @@ function setupTouchControls() {
     });
 
   document.getElementById('btnMute').addEventListener('click', function (e) {
+    e.preventDefault();
+    soundManager.toggleMute();
+  });
+  document.getElementById('btnMute').addEventListener('touchstart', e => {
     e.preventDefault();
     soundManager.toggleMute();
   });

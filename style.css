@@ -223,3 +223,45 @@ canvas {
     display: none;
   }
 }
+
+@media (hover:none) and (pointer:coarse) and (orientation:landscape) {
+
+  /* Browser-Chrome ausblenden & Scrollen verhindern */
+  html, body{
+    margin:0;
+    padding:0;
+    width:100vw;
+    height:100vh;
+    overflow:hidden;
+    background:none;
+    background-color:#000;
+  }
+
+  /* Der Fullscreen-Wrapper und das Canvas nehmen 100 % ein */
+  #fullscreen, canvas{
+    position:fixed;   /* überdeckt komplett */
+    top:0; left:0;
+    width:100vw !important;
+    height:100vh !important;
+  }
+
+  /* Hintergrundgrafik wollen wir mobil nicht – spart RAM */
+  body{ background-image:none; }
+}
+
+/* Hinweis-Overlay bei PORTRAIT -----------------------------*/
+@media (hover:none) and (pointer:coarse) and (orientation:portrait){
+  #orientationOverlay{           /* schon in deinem HTML vorhanden */
+    display:flex !important;     /* sichtbar & zentriert */
+    align-items:center;
+    justify-content:center;
+    position:fixed;
+    inset:0;
+    background:#000;
+    color:#fff;
+    font:20px/1.4 Zabars,Arial;
+    text-align:center;
+    z-index:2000;
+  }
+}
+canvas{ will-change:transform; }
