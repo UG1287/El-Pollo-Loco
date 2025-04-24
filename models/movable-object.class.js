@@ -42,7 +42,7 @@ class MovableObject extends DrawableObject {
   }
 
   isHurt() {
-    const timePassed = (Date.now() - this.lastHit) / 1000;
+    let timePassed = (Date.now() - this.lastHit) / 1000;
     return timePassed < 0.7;
   }
 

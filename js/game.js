@@ -38,7 +38,7 @@ function init() {
   canvas      = document.getElementById('canvas');
   startScreen = new StartScreen(canvas, startGame, keyboard);
 
-  const touchControls = document.getElementById('touchControls');
+  let touchControls = document.getElementById('touchControls');
   if (touchControls) touchControls.style.display = 'none';
 
   document.getElementById('mobileImpressumLink').style.display = 'block';
@@ -51,11 +51,11 @@ function init() {
  * @returns {void}
  */
 function handleOrientation() {
-  const overlay = document.getElementById('orientationOverlay');
+  let overlay = document.getElementById('orientationOverlay');
   if (!overlay) return;
 
   if (isTouchDevice()) {
-    const isPortrait = window.matchMedia('(orientation:portrait)').matches;
+    let isPortrait = window.matchMedia('(orientation:portrait)').matches;
     overlay.style.display = isPortrait ? 'flex' : 'none';
   } else {
     overlay.style.display = 'none';
@@ -113,9 +113,9 @@ function resetGame() {
   clearCanvas();
 
   // reset UI
-  const restartBtn      = document.getElementById('restartButton');
-  const touchControls   = document.getElementById('touchControls');
-  const mobileImpressum = document.getElementById('mobileImpressumLink');
+  let restartBtn      = document.getElementById('restartButton');
+  let touchControls   = document.getElementById('touchControls');
+  let mobileImpressum = document.getElementById('mobileImpressumLink');
 
   if (restartBtn) restartBtn.style.display = 'none';
 
@@ -143,7 +143,7 @@ window.resetGame = resetGame;
  * @returns {void}
  */
 function clearCanvas() {
-  const ctx = canvas.getContext('2d');
+  let ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
@@ -172,29 +172,29 @@ function isTouchDevice() {
  * @returns {void}
  */
 function setupTouchControls() {
-  const touchControls = document.getElementById('touchControls');
+  let touchControls = document.getElementById('touchControls');
   touchControls.style.display = isTouchDevice() ? 'block' : 'none';
 
   /* left / right */
-  const btnLeft  = document.getElementById('btnLeft');
-  const btnRight = document.getElementById('btnRight');
+  let btnLeft  = document.getElementById('btnLeft');
+  let btnRight = document.getElementById('btnRight');
   btnLeft .ontouchstart = e => { e.preventDefault(); keyboard.LEFT  = true; };
   btnLeft .ontouchend   = e => { e.preventDefault(); keyboard.LEFT  = false; };
   btnRight.ontouchstart = e => { e.preventDefault(); keyboard.RIGHT = true; };
   btnRight.ontouchend   = e => { e.preventDefault(); keyboard.RIGHT = false; };
 
   /* jump */
-  const btnJump = document.getElementById('btnJump');
+  let btnJump = document.getElementById('btnJump');
   btnJump.ontouchstart = e => { e.preventDefault(); keyboard.SPACE = true;  };
   btnJump.ontouchend   = e => { e.preventDefault(); keyboard.SPACE = false; };
 
   /* throw */
-  const btnThrow = document.getElementById('btnThrow');
+  let btnThrow = document.getElementById('btnThrow');
   btnThrow.ontouchstart = e => { e.preventDefault(); if (world) world.tryThrowBottle(); };
   btnThrow.ontouchend   = e => { e.preventDefault(); keyboard.D = false; };
 
   /* mute */
-  const btnMute = document.getElementById('btnMute');
+  let btnMute = document.getElementById('btnMute');
   btnMute.onclick =
   btnMute.ontouchstart = e => { e.preventDefault(); soundManager.toggleMute(); };
 }

@@ -10,18 +10,9 @@ class DrawableObject {
   loadImage(path) {
     if (this.imageCache[path]) {
       this.img = this.imageCache[path];
-      console.log('✅ Bild aus Cache geladen:', path);
     } else {
       this.img = new Image();
       this.img.src = path;
-
-      this.img.onload = () => {
-        console.log('✅ Bild erfolgreich geladen:', path);
-      };
-
-      this.img.onerror = () => {
-        console.error('❌ Fehler beim Laden des Bildes:', path);
-      };
     }
   }
 
@@ -29,12 +20,6 @@ class DrawableObject {
     if (!this.img) {
       console.warn(`${this.constructor.name}: Kein Bild definiert!`);
       return;
-    }
-
-    if (!this.img.complete) {
-      console.log(
-        `${this.constructor.name}: Bild ist noch nicht fertig, zeichnen aber trotzdem...`
-      );
     }
 
     ctx.drawImage(this.img, this.x, this.y, this.width, this.height);

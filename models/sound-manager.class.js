@@ -7,11 +7,11 @@ class SoundManager {
 
   async loadSounds() {
     try {
-      const response = await fetch('audio/audioAssets.json');
-      const audioData = await response.json();
+      let response = await fetch('audio/audioAssets.json');
+      let audioData = await response.json();
 
-      for (const [key, path] of Object.entries(audioData)) {
-        const a = new Audio(path);
+      for (let [key, path] of Object.entries(audioData)) {
+        let a = new Audio(path);
         a.volume = 0.7;
         a.loop = key === 'background';
         a.muted = this.muted;
@@ -54,7 +54,7 @@ class SoundManager {
   }
 
   stopBackgroundMusic() {
-    const bg = this.sounds['background'];
+    let bg = this.sounds['background'];
     if (!bg) return;
     bg.pause();
     bg.currentTime = 0;

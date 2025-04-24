@@ -7,7 +7,6 @@ class Endboss extends MovableObject {
   chaseRange = 1000;
   minDistance = 100;
 
-  // Interval‑IDs, um sie später stoppen zu können
   movementIntervalID;
   animationIntervalID;
   deadIntervalID;
@@ -55,14 +54,16 @@ class Endboss extends MovableObject {
   }
 
   animate() {
-    // 1) Bewegung auf den Spieler zu
     this.movementIntervalID = setInterval(() => {
       if (!this.world || this.isDead()) return;
       let bossCenter = this.x + this.width / 2;
       let charCenter = this.world.character.x + this.world.character.width / 2;
       let distX = charCenter - bossCenter;
 
-      if (Math.abs(distX) < this.chaseRange && Math.abs(distX) > this.minDistance) {
+      if (
+        Math.abs(distX) < this.chaseRange &&
+        Math.abs(distX) > this.minDistance
+      ) {
         if (distX > 0) {
           this.otherDirection = true;
           this.moveRight();
@@ -73,10 +74,8 @@ class Endboss extends MovableObject {
       }
     }, 1000 / 60);
 
-    // 2) Animations‑Loop
     this.animationIntervalID = setInterval(() => {
       if (this.isDead()) {
-        // Tod erstmals erkennen und Dead‑Sequenz starten
         if (!this.deadPlayed) {
           this.deadPlayed = true;
           clearInterval(this.movementIntervalID);
@@ -86,9 +85,9 @@ class Endboss extends MovableObject {
       } else if (this.isHurt()) {
         this.playAnimation(this.IMAGES_HURT);
       } else {
-        // Normaler Zustand: alert oder attack
         let bossCenter = this.x + this.width / 2;
-        let charCenter = this.world.character.x + this.world.character.width / 2;
+        let charCenter =
+          this.world.character.x + this.world.character.width / 2;
         let distX = charCenter - bossCenter;
         if (Math.abs(distX) < this.minDistance) {
           this.playAnimation(this.IMAGES_ATTACK);
@@ -99,14 +98,10 @@ class Endboss extends MovableObject {
     }, 200);
   }
 
-  /**
-   * Spielt die Dead‑Animation einmal komplett durch.
-   */
   playDeadSequence() {
     let idx = 0;
     this.deadIntervalID = setInterval(() => {
       if (idx < this.IMAGES_DEAD.length) {
-        // jeweiliges Dead‑Frame setzen
         const path = this.IMAGES_DEAD[idx];
         this.img = this.imageCache[path];
         idx++;
@@ -131,9 +126,8 @@ class Endboss extends MovableObject {
 
   setWorld(world) {
     this.world = world;
-    this.animate();          // erst jetzt starten
+    this.animate();
   }
-  
 
   stop() {
     clearInterval(this.moveInterval);

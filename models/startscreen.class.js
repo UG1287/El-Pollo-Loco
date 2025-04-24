@@ -49,7 +49,7 @@ class StartScreen {
 
     container.innerHTML = '';
 
-    const startButton = document.createElement('button');
+    let startButton = document.createElement('button');
     startButton.textContent = 'Spiel starten';
     startButton.className = 'explanationButton';
     startButton.addEventListener('click', () => {
@@ -57,7 +57,7 @@ class StartScreen {
       this.startCallback();
     });
 
-    const explanationButton = document.createElement('button');
+    let explanationButton = document.createElement('button');
     explanationButton.textContent = 'Spielerklärung';
     explanationButton.className = 'explanationButton';
     explanationButton.addEventListener('click', () => {
@@ -69,12 +69,12 @@ class StartScreen {
   }
 
   hideStartScreen() {
-    const container = document.getElementById('startScreenButtons');
+    let container = document.getElementById('startScreenButtons');
     if (container) {
       container.parentNode.removeChild(container);
     }
 
-    const touchControls = document.getElementById('touchControls');
+    let touchControls = document.getElementById('touchControls');
     if (touchControls) {
       touchControls.style.display = 'none';
     }

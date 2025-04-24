@@ -30,7 +30,6 @@ class Chicken extends MovableObject {
   }
 
   die() {
-    console.log('Huhn gestorben!');
     this.loadImage(this.IMAGE_DEAD);
     clearInterval(this.walkingInterval);
     clearInterval(this.animationInterval);
