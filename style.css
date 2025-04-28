@@ -31,7 +31,7 @@ h1 {
 canvas {
   background-color: black;
   display: block;
-    will-change: transform;
+  will-change: transform;
 }
 
 .impressum-container {
@@ -54,9 +54,9 @@ canvas {
   cursor: pointer;
   font-size: 20px;
   margin-top: 395px;
-  margin-right: 10px;       /* Abstand nach oben */
-  width: 120px;            /* Breite der Buttons */
-  height: 40px;            /* Höhe der Buttons */
+  margin-right: 10px;
+  width: 120px;
+  height: 40px;
 }
 
 .explanationButton:hover {
@@ -67,7 +67,7 @@ canvas {
   display: none;
   position: fixed;
   inset: 0;
-  background: white;
+  background-image: url('img/background-image-desert.jpg');
   color: black;
   z-index: 3000;
   overflow: auto;
@@ -98,8 +98,6 @@ canvas {
   background: darkorange;
 }
 
-
-/* Touch Controls Container: Standardmäßig ausgeblendet */
 #touchControls {
   display: none;
   position: fixed;
@@ -109,7 +107,6 @@ canvas {
   background-color: transparent;
 }
 
-/* Linke Steuerung – unten links */
 #leftControls {
   position: fixed;
   bottom: 20px;
@@ -203,7 +200,6 @@ canvas {
 }
 
 @media screen and (orientation: portrait) and (max-width: 768px) {
-  /* Blende ein Overlay ein, das besagt, dass das Spiel im Querformat gespielt werden soll */
   #orientationOverlay {
     display: block;
   }
@@ -227,9 +223,8 @@ canvas {
 
   .explanationButton {
     margin-bottom: 8vh;
-    margin-top: 92vh ;
+    margin-top: 92vh;
   }
-
 
   canvas {
     width: 100vw !important;
@@ -274,44 +269,46 @@ canvas {
   }
 }
 
-@media (hover:none) and (pointer:coarse) and (orientation:landscape) {
-
-  /* Browser-Chrome ausblenden & Scrollen verhindern */
-  html, body{
-    margin:0;
-    padding:0;
-    width:100vw;
-    height:100vh;
-    overflow:hidden;
-    background:none;
-    background-color:#000;
+@media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: none;
+    background-color: #000;
   }
 
-  /* Der Fullscreen-Wrapper und das Canvas nehmen 100 % ein */
-  #fullscreen, canvas{
-    position:fixed;   /* überdeckt komplett */
-    top:0; left:0;
-    width:100vw !important;
-    height:100vh !important;
+  #fullscreen,
+  canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw !important;
+    height: 100vh !important;
   }
 
-  /* Hintergrundgrafik wollen wir mobil nicht – spart RAM */
-  body{ background-image:none; }
-}
-
-/* Hinweis-Overlay bei PORTRAIT -----------------------------*/
-@media (hover:none) and (pointer:coarse) and (orientation:portrait){
-  #orientationOverlay{           /* schon in deinem HTML vorhanden */
-    display:flex !important;     /* sichtbar & zentriert */
-    align-items:center;
-    justify-content:center;
-    position:fixed;
-    inset:0;
-    background:#000;
-    color:#fff;
-    font:20px/1.4 Zabars,Arial;
-    text-align:center;
-    z-index:2000;
+  body {
+    background-image: none;
   }
 }
-canvas{ will-change:transform; }
+
+@media (hover: none) and (pointer: coarse) and (orientation: portrait) {
+  #orientationOverlay {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    inset: 0;
+    background: #000;
+    color: #fff;
+    font: 20px/1.4 Zabars, Arial;
+    text-align: center;
+    z-index: 2000;
+  }
+}
+canvas {
+  will-change: transform;
+}

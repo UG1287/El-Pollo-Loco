@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="img/favicon.png" type="image/x-icon" />
     <link rel="stylesheet" href="style.css" />
-    <!-- Skripte einbinden -->
     <script src="models/sound-manager.class.js"></script>
     <script src="models/drawable-object.class.js"></script>
     <script src="models/movable-object.class.js"></script>
@@ -59,12 +58,13 @@
       </nav>
     </footer>
     <!-- Impressum Overlay -->
-<div id="impressumOverlay">
-  <div id="impressumContent">Lade Impressum...</div>
-  <button onclick="closeImpressum()" style="margin-top:20px;">Zurück</button>
-</div>
+    <div id="impressumOverlay">
+      <div id="impressumContent">Lade Impressum...</div>
+      <button onclick="closeImpressum()" style="margin-top: 20px">
+        Zurück
+      </button>
+    </div>
 
-    
     <!-- Restart-Button für Mobile (sichtbar nach Game Over oder Victory) -->
     <button id="restartButton" style="display: none" class="explanationButton">
       🔁 Neu starten

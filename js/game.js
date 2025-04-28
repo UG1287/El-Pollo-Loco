@@ -1,44 +1,28 @@
-/**
- * Canvas element (assigned in `init()`)
- * @type {HTMLCanvasElement}
- */
 let canvas;
-/**
- * Current game world instance
- * @type {World}
- */
 let world;
-/**
- * Global keyboard / touch controller
- * @type {Keyboard}
- */
 let keyboard = new Keyboard();
-/** Start-screen object */
 let startScreen;
-/** `true` while a game session is running */
 let gameStarted = false;
-/** Central sound manager (music & FX) */
 let soundManager = new SoundManager();
 
-
 /**
- * Called on page load.  
+ * Called on page load.
  * Sets up the canvas, shows the start screen and hides the touch UI.
  * @returns {void}
  */
 function init() {
-  canvas      = document.getElementById('canvas');
+  canvas = document.getElementById('canvas');
   startScreen = new StartScreen(canvas, startGame, keyboard);
 
   let touchControls = document.getElementById('touchControls');
   if (touchControls) touchControls.style.display = 'none';
 
   document.getElementById('mobileImpressumLink').style.display = 'block';
-  handleOrientation(); // initial check
+  handleOrientation();
 }
 
 /**
- * Shows or hides the orientation overlay.  
+ * Shows or hides the orientation overlay.
  * On touch devices: overlay is visible in portrait mode, hidden in landscape.
  * @returns {void}
  */
@@ -60,12 +44,11 @@ function handleOrientation() {
  */
 function hasRealTouch() {
   return (
-    'ontouchstart' in window ||    // klassische Touch-Erkennung
-    navigator.maxTouchPoints > 0 || // modernere Touch-Erkennung
-    navigator.msMaxTouchPoints > 0  // IE / alte Browser Touch-Erkennung
+    'ontouchstart' in window ||
+    navigator.maxTouchPoints > 0 ||
+    navigator.msMaxTouchPoints > 0
   );
 }
-
 
 window.addEventListener('load', () => {
   handleOrientation();
@@ -82,8 +65,6 @@ window.addEventListener('resize', () => {
   setupTouchControls();
 });
 
-
-
 /**
  * Starts the game once, called from the start-screen.
  * @returns {void}
@@ -98,12 +79,13 @@ function startGame() {
 
   if (isTouchDevice()) {
     document.getElementById('touchControls').style.display = 'block';
-    document.getElementById('mobileImpressumLink').style.display = 'none'; 
+    document.getElementById('mobileImpressumLink').style.display = 'none';
   } else {
     document.getElementById('mobileImpressumLink').style.display = 'none';
   }
 
-  if (!soundManager.muted) setTimeout(() => soundManager.playBackgroundMusic(), 500);
+  if (!soundManager.muted)
+    setTimeout(() => soundManager.playBackgroundMusic(), 500);
 
   setupTouchControls();
 }
@@ -117,7 +99,9 @@ function resetGame() {
   if (world) {
     world.gameOver = true;
     world.character.stop();
-    world.level.enemies.forEach(e => typeof e.stop === 'function' && e.stop());
+    world.level.enemies.forEach(
+      (e) => typeof e.stop === 'function' && e.stop()
+    );
     clearInterval(world.collisionIntervalID);
     clearInterval(world.runIntervalID);
   }
@@ -125,8 +109,8 @@ function resetGame() {
   soundManager.reset();
   clearCanvas();
 
-  let restartBtn      = document.getElementById('restartButton');
-  let touchControls   = document.getElementById('touchControls');
+  let restartBtn = document.getElementById('restartButton');
+  let touchControls = document.getElementById('touchControls');
   let mobileImpressum = document.getElementById('mobileImpressumLink');
 
   if (restartBtn) restartBtn.style.display = 'none';
@@ -139,7 +123,7 @@ function resetGame() {
     mobileImpressum.style.display = 'none';
   }
 
-  world       = new World(canvas, keyboard, soundManager, createLevel1());
+  world = new World(canvas, keyboard, soundManager, createLevel1());
   gameStarted = true;
   setupTouchControls();
 
@@ -194,24 +178,49 @@ function setupTouchControls() {
     touchControls.style.display = 'none';
   }
 
-  /* Steuerungen binden */
-  let btnLeft  = document.getElementById('btnLeft');
+  let btnLeft = document.getElementById('btnLeft');
   let btnRight = document.getElementById('btnRight');
-  let btnJump  = document.getElementById('btnJump');
+  let btnJump = document.getElementById('btnJump');
   let btnThrow = document.getElementById('btnThrow');
-  let btnMute  = document.getElementById('btnMute');
+  let btnMute = document.getElementById('btnMute');
 
   if (btnLeft && btnRight && btnJump && btnThrow && btnMute) {
-    btnLeft.ontouchstart  = e => { e.preventDefault(); keyboard.LEFT  = true; };
-    btnLeft.ontouchend    = e => { e.preventDefault(); keyboard.LEFT  = false; };
-    btnRight.ontouchstart = e => { e.preventDefault(); keyboard.RIGHT = true; };
-    btnRight.ontouchend   = e => { e.preventDefault(); keyboard.RIGHT = false; };
-    btnJump.ontouchstart  = e => { e.preventDefault(); keyboard.SPACE = true; };
-    btnJump.ontouchend    = e => { e.preventDefault(); keyboard.SPACE = false; };
-    btnThrow.ontouchstart = e => { e.preventDefault(); if (world) world.tryThrowBottle(); };
-    btnThrow.ontouchend   = e => { e.preventDefault(); keyboard.D = false; };
-    btnMute.onclick       =
-    btnMute.ontouchstart   = e => { e.preventDefault(); soundManager.toggleMute(); };
+    btnLeft.ontouchstart = (e) => {
+      e.preventDefault();
+      keyboard.LEFT = true;
+    };
+    btnLeft.ontouchend = (e) => {
+      e.preventDefault();
+      keyboard.LEFT = false;
+    };
+    btnRight.ontouchstart = (e) => {
+      e.preventDefault();
+      keyboard.RIGHT = true;
+    };
+    btnRight.ontouchend = (e) => {
+      e.preventDefault();
+      keyboard.RIGHT = false;
+    };
+    btnJump.ontouchstart = (e) => {
+      e.preventDefault();
+      keyboard.SPACE = true;
+    };
+    btnJump.ontouchend = (e) => {
+      e.preventDefault();
+      keyboard.SPACE = false;
+    };
+    btnThrow.ontouchstart = (e) => {
+      e.preventDefault();
+      if (world) world.tryThrowBottle();
+    };
+    btnThrow.ontouchend = (e) => {
+      e.preventDefault();
+      keyboard.D = false;
+    };
+    btnMute.onclick = btnMute.ontouchstart = (e) => {
+      e.preventDefault();
+      soundManager.toggleMute();
+    };
   }
 }
 
@@ -220,14 +229,13 @@ function openImpressum() {
   const content = document.getElementById('impressumContent');
 
   fetch('impressum.html')
-    .then(response => {
+    .then((response) => {
       if (!response.ok) {
         throw new Error('Impressum konnte nicht geladen werden');
       }
       return response.text();
     })
-    .then(html => {
-      // Nur den Inhalt aus <main> laden (optional)
+    .then((html) => {
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
       const main = doc.querySelector('main');
@@ -235,7 +243,7 @@ function openImpressum() {
 
       overlay.style.display = 'block';
     })
-    .catch(error => {
+    .catch((error) => {
       content.innerHTML = 'Fehler beim Laden des Impressums.';
       overlay.style.display = 'block';
       console.error(error);
@@ -247,33 +255,62 @@ function closeImpressum() {
   overlay.style.display = 'none';
 }
 
-
-
-
-window.addEventListener('keydown', e => {
+window.addEventListener('keydown', (e) => {
   if (!keyboard) return;
 
   switch (e.code) {
-    case 'ArrowRight': keyboard.RIGHT = true; break;
-    case 'ArrowLeft' : keyboard.LEFT  = true; break;
-    case 'ArrowUp'   : keyboard.UP    = true; break;
-    case 'ArrowDown' : keyboard.DOWN  = true; break;
-    case 'Space'     : keyboard.SPACE = true; break;
-    case 'KeyD'      : if (world) world.tryThrowBottle(); break;
-    case 'Enter'     : keyboard.ENTER = true; break;
-    case 'KeyM'      : soundManager.toggleMute(); break;
-    case 'KeyF'      : toggleFullscreen(); break;
+    case 'ArrowRight':
+      keyboard.RIGHT = true;
+      break;
+    case 'ArrowLeft':
+      keyboard.LEFT = true;
+      break;
+    case 'ArrowUp':
+      keyboard.UP = true;
+      break;
+    case 'ArrowDown':
+      keyboard.DOWN = true;
+      break;
+    case 'Space':
+      keyboard.SPACE = true;
+      break;
+    case 'KeyD':
+      if (world) world.tryThrowBottle();
+      break;
+    case 'Enter':
+      keyboard.ENTER = true;
+      break;
+    case 'KeyM':
+      soundManager.toggleMute();
+      break;
+    case 'KeyF':
+      toggleFullscreen();
+      break;
   }
 });
 
-window.addEventListener('keyup', e => {
+window.addEventListener('keyup', (e) => {
   switch (e.code) {
-    case 'ArrowRight': keyboard.RIGHT = false; break;
-    case 'ArrowLeft' : keyboard.LEFT  = false; break;
-    case 'ArrowUp'   : keyboard.UP    = false; break;
-    case 'ArrowDown' : keyboard.DOWN  = false; break;
-    case 'Space'     : keyboard.SPACE = false; break;
-    case 'KeyD'      : keyboard.D     = false; break;
-    case 'Enter'     : keyboard.ENTER = false; break;
+    case 'ArrowRight':
+      keyboard.RIGHT = false;
+      break;
+    case 'ArrowLeft':
+      keyboard.LEFT = false;
+      break;
+    case 'ArrowUp':
+      keyboard.UP = false;
+      break;
+    case 'ArrowDown':
+      keyboard.DOWN = false;
+      break;
+    case 'Space':
+      keyboard.SPACE = false;
+      break;
+    case 'KeyD':
+      keyboard.D = false;
+      break;
+    case 'Enter':
+      keyboard.ENTER = false;
+      break;
   }
 });

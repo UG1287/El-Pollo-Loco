@@ -65,7 +65,7 @@ class Endboss extends MovableObject {
     this.currentAnimationImages = this.IMAGES_ALERT;
     setTimeout(() => {
       this.alertTimePassed = true;
-    }, 5000); // z.B. 2 Sekunden in Alert stehenbleiben
+    }, 1000);
     this.startMovement();
     this.startAnimation();
   }
@@ -82,7 +82,6 @@ class Endboss extends MovableObject {
         this.world.character.x + this.world.character.width / 2;
       const distX = charCenter - bossCenter;
 
-      // Boss ist innerhalb der sichtbaren Welt?
       const bossIsVisible =
         this.x + this.width > -this.world.camera_x &&
         this.x < -this.world.camera_x + this.world.canvas.width;
@@ -123,12 +122,12 @@ class Endboss extends MovableObject {
         return;
       }
 
-      let newAnimation = this.IMAGES_ALERT; // <<< immer erstmal ALERT als Standard
+      let newAnimation = this.IMAGES_ALERT;
 
       if (this.isHurt()) {
         newAnimation = this.IMAGES_HURT;
       } else if (!this.alertTimePassed) {
-        newAnimation = this.IMAGES_ALERT; // <<< solange alertTimePassed == false, immer ALERT zeigen
+        newAnimation = this.IMAGES_ALERT;
       } else {
         const bossCenter = this.x + this.width / 2;
         const charCenter =

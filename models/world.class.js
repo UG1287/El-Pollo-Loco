@@ -197,7 +197,8 @@ class World {
         this.ctx.fillText(
           'Press ENTER to retry',
           this.canvas.width / 2,
-          this.canvas.height / 2 + 100        );
+          this.canvas.height / 2 + 100
+        );
       }
 
       let btn = document.getElementById('restartButton');
