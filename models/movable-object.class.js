@@ -5,6 +5,8 @@ class MovableObject extends DrawableObject {
   acceleration = 2.5;
   energy = 100;
   lastHit = 0;
+  currentAnimationImages = [];
+  animationFrameIndex = 0;
 
   applyGravity() {
     setInterval(() => {
@@ -12,7 +14,7 @@ class MovableObject extends DrawableObject {
         this.y -= this.speedY;
         this.speedY -= this.acceleration;
       }
-    }, 1000 / 25);
+    }, 1000 / 30);
   }
 
   isAboveGround() {
@@ -33,7 +35,9 @@ class MovableObject extends DrawableObject {
   }
 
   hit() {
-    if (this.world && this.world.soundManager) { this.world.soundManager.playSound('hit'); }
+    if (this.world && this.world.soundManager) {
+      this.world.soundManager.playSound('hit');
+    }
 
     this.lastAction = Date.now();
     this.energy -= 5;
@@ -55,10 +59,20 @@ class MovableObject extends DrawableObject {
   }
 
   playAnimation(images) {
-    let i = this.currentImage % images.length;
-    let path = images[i];
+    if (!images || images.length === 0) return;
+
+    if (this.currentAnimationImages !== images) {
+      this.currentAnimationImages = images;
+      this.animationFrameIndex = 0; // Reset auf erstes Bild bei neuem Array
+    }
+
+    const path = this.currentAnimationImages[this.animationFrameIndex];
     this.img = this.imageCache[path];
-    this.currentImage++;
+
+    this.animationFrameIndex++;
+    if (this.animationFrameIndex >= this.currentAnimationImages.length) {
+      this.animationFrameIndex = 0;
+    }
   }
 
   moveRight() {

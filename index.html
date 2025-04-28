@@ -34,7 +34,7 @@
       <canvas id="canvas" width="720" height="480"></canvas>
     </div>
     <div id="mobileImpressumLink">
-      <a href="impressum.html">Impressum</a>
+      <a href="javascript:void(0)" onclick="openImpressum()">Impressum</a>
     </div>
 
     <div id="touchControls" style="display: none">
@@ -55,9 +55,16 @@
 
     <footer id="desktopImpressum">
       <nav>
-        <a href="impressum.html">Impressum</a>
+        <a href="javascript:void(0)" onclick="openImpressum()">Impressum</a>
       </nav>
     </footer>
+    <!-- Impressum Overlay -->
+<div id="impressumOverlay">
+  <div id="impressumContent">Lade Impressum...</div>
+  <button onclick="closeImpressum()" style="margin-top:20px;">Zurück</button>
+</div>
+
+    
     <!-- Restart-Button für Mobile (sichtbar nach Game Over oder Victory) -->
     <button id="restartButton" style="display: none" class="explanationButton">
       🔁 Neu starten

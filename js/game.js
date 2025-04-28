@@ -1,8 +1,3 @@
-/**********************************************************************
- * Main game script
- * – Initialisation, start / reset logic, event-handlers, touch UI
- *********************************************************************/
-
 /**
  * Canvas element (assigned in `init()`)
  * @type {HTMLCanvasElement}
@@ -25,9 +20,6 @@ let gameStarted = false;
 /** Central sound manager (music & FX) */
 let soundManager = new SoundManager();
 
-/* ------------------------------------------------------------------ */
-/* --- Initialisation & orientation handling ------------------------ */
-/* ------------------------------------------------------------------ */
 
 /**
  * Called on page load.  
@@ -62,14 +54,35 @@ function handleOrientation() {
   }
 }
 
-/* keep overlay state up-to-date */
-window.addEventListener('load', handleOrientation);
-window.addEventListener('orientationchange', handleOrientation);
-window.addEventListener('resize', handleOrientation);
+/**
+ * Ermittelt zuverlässig, ob das Gerät echte Touch-Unterstützung hat.
+ * @returns {boolean}
+ */
+function hasRealTouch() {
+  return (
+    'ontouchstart' in window ||    // klassische Touch-Erkennung
+    navigator.maxTouchPoints > 0 || // modernere Touch-Erkennung
+    navigator.msMaxTouchPoints > 0  // IE / alte Browser Touch-Erkennung
+  );
+}
 
-/* ------------------------------------------------------------------ */
-/* --- start / restart game ----------------------------------------- */
-/* ------------------------------------------------------------------ */
+
+window.addEventListener('load', () => {
+  handleOrientation();
+  setupTouchControls();
+});
+
+window.addEventListener('orientationchange', () => {
+  handleOrientation();
+  setupTouchControls();
+});
+
+window.addEventListener('resize', () => {
+  handleOrientation();
+  setupTouchControls();
+});
+
+
 
 /**
  * Starts the game once, called from the start-screen.
@@ -83,8 +96,12 @@ function startGame() {
 
   world = new World(canvas, keyboard, soundManager, createLevel1());
 
-  if (isTouchDevice()) document.getElementById('touchControls').style.display = 'block';
-  document.getElementById('mobileImpressumLink').style.display = 'none';
+  if (isTouchDevice()) {
+    document.getElementById('touchControls').style.display = 'block';
+    document.getElementById('mobileImpressumLink').style.display = 'none'; 
+  } else {
+    document.getElementById('mobileImpressumLink').style.display = 'none';
+  }
 
   if (!soundManager.muted) setTimeout(() => soundManager.playBackgroundMusic(), 500);
 
@@ -97,7 +114,6 @@ function startGame() {
  * @returns {void}
  */
 function resetGame() {
-  // stop previous world
   if (world) {
     world.gameOver = true;
     world.character.stop();
@@ -106,13 +122,9 @@ function resetGame() {
     clearInterval(world.runIntervalID);
   }
 
-  // reset audio & canvas
   soundManager.reset();
-  soundManager.stopBackgroundMusic();
-  if (!soundManager.muted) soundManager.playBackgroundMusic();
   clearCanvas();
 
-  // reset UI
   let restartBtn      = document.getElementById('restartButton');
   let touchControls   = document.getElementById('touchControls');
   let mobileImpressum = document.getElementById('mobileImpressumLink');
@@ -120,23 +132,25 @@ function resetGame() {
   if (restartBtn) restartBtn.style.display = 'none';
 
   if (isTouchDevice()) {
-    touchControls.style.display   = 'block';
+    touchControls.style.display = 'block';
     mobileImpressum.style.display = 'block';
   } else {
-    touchControls.style.display   = 'none';
+    touchControls.style.display = 'none';
     mobileImpressum.style.display = 'none';
   }
 
-  // new world
   world       = new World(canvas, keyboard, soundManager, createLevel1());
   gameStarted = true;
   setupTouchControls();
-}
-window.resetGame = resetGame;
 
-/* ------------------------------------------------------------------ */
-/* --- helpers ------------------------------------------------------- */
-/* ------------------------------------------------------------------ */
+  if (!soundManager.muted && soundManager.userInteracted) {
+    setTimeout(() => {
+      soundManager.playBackgroundMusic();
+    }, 300);
+  }
+}
+
+window.resetGame = resetGame;
 
 /**
  * Clears the entire canvas.
@@ -173,35 +187,69 @@ function isTouchDevice() {
  */
 function setupTouchControls() {
   let touchControls = document.getElementById('touchControls');
-  touchControls.style.display = isTouchDevice() ? 'block' : 'none';
 
-  /* left / right */
+  if (hasRealTouch()) {
+    touchControls.style.display = 'block';
+  } else {
+    touchControls.style.display = 'none';
+  }
+
+  /* Steuerungen binden */
   let btnLeft  = document.getElementById('btnLeft');
   let btnRight = document.getElementById('btnRight');
-  btnLeft .ontouchstart = e => { e.preventDefault(); keyboard.LEFT  = true; };
-  btnLeft .ontouchend   = e => { e.preventDefault(); keyboard.LEFT  = false; };
-  btnRight.ontouchstart = e => { e.preventDefault(); keyboard.RIGHT = true; };
-  btnRight.ontouchend   = e => { e.preventDefault(); keyboard.RIGHT = false; };
-
-  /* jump */
-  let btnJump = document.getElementById('btnJump');
-  btnJump.ontouchstart = e => { e.preventDefault(); keyboard.SPACE = true;  };
-  btnJump.ontouchend   = e => { e.preventDefault(); keyboard.SPACE = false; };
-
-  /* throw */
+  let btnJump  = document.getElementById('btnJump');
   let btnThrow = document.getElementById('btnThrow');
-  btnThrow.ontouchstart = e => { e.preventDefault(); if (world) world.tryThrowBottle(); };
-  btnThrow.ontouchend   = e => { e.preventDefault(); keyboard.D = false; };
+  let btnMute  = document.getElementById('btnMute');
 
-  /* mute */
-  let btnMute = document.getElementById('btnMute');
-  btnMute.onclick =
-  btnMute.ontouchstart = e => { e.preventDefault(); soundManager.toggleMute(); };
+  if (btnLeft && btnRight && btnJump && btnThrow && btnMute) {
+    btnLeft.ontouchstart  = e => { e.preventDefault(); keyboard.LEFT  = true; };
+    btnLeft.ontouchend    = e => { e.preventDefault(); keyboard.LEFT  = false; };
+    btnRight.ontouchstart = e => { e.preventDefault(); keyboard.RIGHT = true; };
+    btnRight.ontouchend   = e => { e.preventDefault(); keyboard.RIGHT = false; };
+    btnJump.ontouchstart  = e => { e.preventDefault(); keyboard.SPACE = true; };
+    btnJump.ontouchend    = e => { e.preventDefault(); keyboard.SPACE = false; };
+    btnThrow.ontouchstart = e => { e.preventDefault(); if (world) world.tryThrowBottle(); };
+    btnThrow.ontouchend   = e => { e.preventDefault(); keyboard.D = false; };
+    btnMute.onclick       =
+    btnMute.ontouchstart   = e => { e.preventDefault(); soundManager.toggleMute(); };
+  }
 }
 
-/* ------------------------------------------------------------------ */
-/* --- keyboard event handlers -------------------------------------- */
-/* ------------------------------------------------------------------ */
+function openImpressum() {
+  const overlay = document.getElementById('impressumOverlay');
+  const content = document.getElementById('impressumContent');
+
+  fetch('impressum.html')
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Impressum konnte nicht geladen werden');
+      }
+      return response.text();
+    })
+    .then(html => {
+      // Nur den Inhalt aus <main> laden (optional)
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const main = doc.querySelector('main');
+      content.innerHTML = main ? main.innerHTML : html;
+
+      overlay.style.display = 'block';
+    })
+    .catch(error => {
+      content.innerHTML = 'Fehler beim Laden des Impressums.';
+      overlay.style.display = 'block';
+      console.error(error);
+    });
+}
+
+function closeImpressum() {
+  const overlay = document.getElementById('impressumOverlay');
+  overlay.style.display = 'none';
+}
+
+
+
+
 window.addEventListener('keydown', e => {
   if (!keyboard) return;
 

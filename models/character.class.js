@@ -171,4 +171,19 @@ class Character extends MovableObject {
       this.world.soundManager.playSound('jump');
     }
   }
+  isColliding(mo) {
+    const shrinkTop = 100;
+    const shrinkBottom = 10;
+    const shrinkLeft = 20;
+    const shrinkRight = 20;
+  
+    return (
+      (this.x + shrinkLeft + (this.width - shrinkLeft - shrinkRight)) >= mo.x &&
+      (this.x + shrinkLeft) <= (mo.x + mo.width) &&
+      (this.y + shrinkTop + (this.height - shrinkTop - shrinkBottom)) >= mo.y &&
+      (this.y + shrinkTop) <= (mo.y + mo.height)
+    );
+  }
+  
+  
 }

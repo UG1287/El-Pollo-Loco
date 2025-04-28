@@ -6,11 +6,19 @@ class Endboss extends MovableObject {
   energy = 50;
   chaseRange = 1000;
   minDistance = 100;
-
   movementIntervalID;
   animationIntervalID;
   deadIntervalID;
   deadPlayed = false;
+  currentAnimationImages = [];
+  alertTimePassed = false;
+
+  IMAGES_WALK = [
+    'img/4_enemie_boss_chicken/1_walk/G1.png',
+    'img/4_enemie_boss_chicken/1_walk/G2.png',
+    'img/4_enemie_boss_chicken/1_walk/G3.png',
+    'img/4_enemie_boss_chicken/1_walk/G4.png',
+  ];
 
   IMAGES_ALERT = [
     'img/4_enemie_boss_chicken/2_alert/G5.png',
@@ -22,6 +30,7 @@ class Endboss extends MovableObject {
     'img/4_enemie_boss_chicken/2_alert/G11.png',
     'img/4_enemie_boss_chicken/2_alert/G12.png',
   ];
+
   IMAGES_ATTACK = [
     'img/4_enemie_boss_chicken/3_attack/G13.png',
     'img/4_enemie_boss_chicken/3_attack/G14.png',
@@ -32,11 +41,13 @@ class Endboss extends MovableObject {
     'img/4_enemie_boss_chicken/3_attack/G19.png',
     'img/4_enemie_boss_chicken/3_attack/G20.png',
   ];
+
   IMAGES_HURT = [
     'img/4_enemie_boss_chicken/4_hurt/G21.png',
     'img/4_enemie_boss_chicken/4_hurt/G22.png',
     'img/4_enemie_boss_chicken/4_hurt/G23.png',
   ];
+
   IMAGES_DEAD = [
     'img/4_enemie_boss_chicken/5_dead/G24.png',
     'img/4_enemie_boss_chicken/5_dead/G25.png',
@@ -46,34 +57,61 @@ class Endboss extends MovableObject {
   constructor(xPos) {
     super().loadImage(this.IMAGES_ALERT[0]);
     this.x = xPos;
+    this.loadImages(this.IMAGES_WALK);
     this.loadImages(this.IMAGES_ALERT);
     this.loadImages(this.IMAGES_ATTACK);
     this.loadImages(this.IMAGES_HURT);
     this.loadImages(this.IMAGES_DEAD);
-    this.animate();
+    this.currentAnimationImages = this.IMAGES_ALERT;
+    setTimeout(() => {
+      this.alertTimePassed = true;
+    }, 5000); // z.B. 2 Sekunden in Alert stehenbleiben
+    this.startMovement();
+    this.startAnimation();
   }
 
-  animate() {
+  startMovement() {
+    this.alertStarted = false;
+    this.alertFinished = false;
+
     this.movementIntervalID = setInterval(() => {
       if (!this.world || this.isDead()) return;
-      let bossCenter = this.x + this.width / 2;
-      let charCenter = this.world.character.x + this.world.character.width / 2;
-      let distX = charCenter - bossCenter;
 
-      if (
-        Math.abs(distX) < this.chaseRange &&
-        Math.abs(distX) > this.minDistance
-      ) {
-        if (distX > 0) {
-          this.otherDirection = true;
-          this.moveRight();
-        } else {
-          this.otherDirection = false;
-          this.moveLeft();
+      const bossCenter = this.x + this.width / 2;
+      const charCenter =
+        this.world.character.x + this.world.character.width / 2;
+      const distX = charCenter - bossCenter;
+
+      // Boss ist innerhalb der sichtbaren Welt?
+      const bossIsVisible =
+        this.x + this.width > -this.world.camera_x &&
+        this.x < -this.world.camera_x + this.world.canvas.width;
+
+      if (Math.abs(distX) < this.chaseRange && bossIsVisible) {
+        if (!this.alertStarted) {
+          this.alertStarted = true;
+          this.currentAnimationImages = this.IMAGES_ALERT;
+          this.currentImage = 0;
+
+          setTimeout(() => {
+            this.alertFinished = true;
+          }, 1500);
+        }
+
+        if (this.alertFinished && Math.abs(distX) > this.minDistance) {
+          if (distX > 0) {
+            this.otherDirection = true;
+            this.moveRight();
+          } else {
+            this.otherDirection = false;
+            this.moveLeft();
+          }
         }
       }
     }, 1000 / 60);
+  }
 
+  startAnimation() {
     this.animationIntervalID = setInterval(() => {
       if (this.isDead()) {
         if (!this.deadPlayed) {
@@ -82,20 +120,34 @@ class Endboss extends MovableObject {
           clearInterval(this.animationIntervalID);
           this.playDeadSequence();
         }
-      } else if (this.isHurt()) {
-        this.playAnimation(this.IMAGES_HURT);
+        return;
+      }
+
+      let newAnimation = this.IMAGES_ALERT; // <<< immer erstmal ALERT als Standard
+
+      if (this.isHurt()) {
+        newAnimation = this.IMAGES_HURT;
+      } else if (!this.alertTimePassed) {
+        newAnimation = this.IMAGES_ALERT; // <<< solange alertTimePassed == false, immer ALERT zeigen
       } else {
-        let bossCenter = this.x + this.width / 2;
-        let charCenter =
+        const bossCenter = this.x + this.width / 2;
+        const charCenter =
           this.world.character.x + this.world.character.width / 2;
-        let distX = charCenter - bossCenter;
+        const distX = charCenter - bossCenter;
         if (Math.abs(distX) < this.minDistance) {
-          this.playAnimation(this.IMAGES_ATTACK);
-        } else {
-          this.playAnimation(this.IMAGES_ALERT);
+          newAnimation = this.IMAGES_ATTACK;
+        } else if (Math.abs(distX) < this.chaseRange) {
+          newAnimation = this.IMAGES_WALK;
         }
       }
-    }, 200);
+
+      if (this.currentAnimationImages !== newAnimation) {
+        this.currentAnimationImages = newAnimation;
+        this.currentImage = 0;
+      }
+
+      this.playAnimation(this.currentAnimationImages);
+    }, 120);
   }
 
   playDeadSequence() {
@@ -119,18 +171,16 @@ class Endboss extends MovableObject {
   takeDamage() {
     this.energy -= 20;
     if (this.energy < 0) this.energy = 0;
-    if (this.energy > 0) {
-      this.lastHit = new Date().getTime();
-    }
+    if (this.energy > 0) this.lastHit = Date.now();
   }
 
   setWorld(world) {
     this.world = world;
-    this.animate();
   }
 
   stop() {
-    clearInterval(this.moveInterval);
-    clearInterval(this.animInterval);
+    clearInterval(this.movementIntervalID);
+    clearInterval(this.animationIntervalID);
+    clearInterval(this.deadIntervalID);
   }
 }
