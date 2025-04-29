@@ -18,7 +18,18 @@ function init() {
   if (touchControls) touchControls.style.display = 'none';
 
   document.getElementById('mobileImpressumLink').style.display = 'block';
+  soundManager.updateMuteIcon();
   handleOrientation();
+  window.addEventListener(
+    'click',
+    () => {
+      if (soundManager && soundManager.sounds['background']) {
+        soundManager.userInteracted = true;
+        soundManager.playBackgroundMusic();
+      }
+    },
+    { once: true }
+  );
 }
 
 /**
@@ -84,8 +95,9 @@ function startGame() {
     document.getElementById('mobileImpressumLink').style.display = 'none';
   }
 
-  if (!soundManager.muted)
+  if (!soundManager.muted && soundManager.userInteracted) {
     setTimeout(() => soundManager.playBackgroundMusic(), 500);
+  }
 
   setupTouchControls();
 }

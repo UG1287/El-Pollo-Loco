@@ -1,3 +1,7 @@
+/**
+ * Represents the main playable character in the game.
+ * Inherits from MovableObject.
+ */
 class Character extends MovableObject {
   height = 200;
   width = 90;
@@ -9,6 +13,7 @@ class Character extends MovableObject {
   deadIntervalID = null;
   deadPlayed = false;
   lastAction = Date.now();
+  MAX_BOTTLES = 7;
 
   IMAGES_WALKING = [
     'img/2_character_pepe/2_walk/W-21.png',
@@ -68,6 +73,9 @@ class Character extends MovableObject {
     'img/2_character_pepe/1_idle/long_idle/I-20.png',
   ];
 
+  /**
+   * Creates a new Character instance, loads images and applies gravity.
+   */
   constructor() {
     super().loadImage(this.IMAGES_WALKING[0]);
     this.loadImages(this.IMAGES_WALKING);
@@ -79,23 +87,44 @@ class Character extends MovableObject {
     this.applyGravity();
   }
 
+  /**
+   * Sets the current world for the character and starts animation.
+   * @param {World} world - The game world instance.
+   * @returns {void}
+   */
   setWorld(world) {
     this.world = world;
     this.animate();
   }
 
+  /**
+   * Increases the bottle count up to the maximum allowed.
+   * @returns {void}
+   */
   collectBottle() {
-    this.bottleCount = Math.min(this.bottleCount + 1, 3);
+    this.bottleCount = Math.min(this.bottleCount + 1, this.MAX_BOTTLES);
   }
 
+  /**
+   * Checks if the character has any bottles left.
+   * @returns {boolean} True if bottles are available, false otherwise.
+   */
   hasBottles() {
     return this.bottleCount > 0;
   }
 
+  /**
+   * Uses one bottle if available.
+   * @returns {void}
+   */
   useBottle() {
     if (this.bottleCount > 0) this.bottleCount--;
   }
 
+  /**
+   * Handles character movement and animation updates in a loop.
+   * @returns {void}
+   */
   animate() {
     this.movementIntervalID = setInterval(() => {
       if (!this.world || this.world.gameOver) return;
@@ -136,9 +165,9 @@ class Character extends MovableObject {
       }
 
       const idleMs = Date.now() - this.lastAction;
-      if (idleMs > 15000) {
+      if (idleMs > 5000) {
         this.playAnimation(this.IMAGES_LONG_IDLE);
-      } else if (idleMs > 5000) {
+      } else if (idleMs > 1000) {
         this.playAnimation(this.IMAGES_IDLE);
       } else if (this.world.keyboard.RIGHT || this.world.keyboard.LEFT) {
         this.playAnimation(this.IMAGES_WALKING);
@@ -146,6 +175,10 @@ class Character extends MovableObject {
     }, 100);
   }
 
+  /**
+   * Plays the death animation sequence and shows the game over screen.
+   * @returns {void}
+   */
   playDeadSequence() {
     let i = 0;
     this.deadIntervalID = setInterval(() => {
@@ -159,23 +192,37 @@ class Character extends MovableObject {
     }, 200);
   }
 
+  /**
+   * Stops all running animation and movement intervals for the character.
+   * @returns {void}
+   */
   stop() {
     clearInterval(this.movementIntervalID);
     clearInterval(this.animationIntervalID);
     clearInterval(this.deadIntervalID);
   }
 
+  /**
+   * Makes the character jump by setting a vertical speed.
+   * @returns {void}
+   */
   jump() {
     this.speedY = 25;
     if (this.world && this.world.soundManager) {
       this.world.soundManager.playSound('jump');
     }
   }
+
+  /**
+   * Checks collision with another movable object using a smaller hitbox.
+   * @param {MovableObject} mo - The other movable object.
+   * @returns {boolean} True if a collision is detected, false otherwise.
+   */
   isColliding(mo) {
     const shrinkTop = 100;
     const shrinkBottom = 10;
-    const shrinkLeft = 20;
-    const shrinkRight = 20;
+    const shrinkLeft = 30;
+    const shrinkRight = 30;
 
     return (
       this.x + shrinkLeft + (this.width - shrinkLeft - shrinkRight) >= mo.x &&

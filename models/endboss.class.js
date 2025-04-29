@@ -3,7 +3,7 @@ class Endboss extends MovableObject {
   height = 450;
   width = 300;
   speed = 1.9;
-  energy = 50;
+  energy = 80;
   chaseRange = 1000;
   minDistance = 100;
   movementIntervalID;
@@ -54,6 +54,11 @@ class Endboss extends MovableObject {
     'img/4_enemie_boss_chicken/5_dead/G26.png',
   ];
 
+  /**
+   * Creates a new Endboss instance at a specific horizontal position,
+   * loads all animation images, and starts movement and animation.
+   * @param {number} xPos - The initial x-position of the Endboss.
+   */
   constructor(xPos) {
     super().loadImage(this.IMAGES_ALERT[0]);
     this.x = xPos;
@@ -70,6 +75,10 @@ class Endboss extends MovableObject {
     this.startAnimation();
   }
 
+  /**
+   * Starts the Endboss's movement logic based on distance to the character.
+   * @returns {void}
+   */
   startMovement() {
     this.alertStarted = false;
     this.alertFinished = false;
@@ -110,6 +119,10 @@ class Endboss extends MovableObject {
     }, 1000 / 60);
   }
 
+  /**
+   * Starts the Endboss's animation loop depending on state and distance to the character.
+   * @returns {void}
+   */
   startAnimation() {
     this.animationIntervalID = setInterval(() => {
       if (this.isDead()) {
@@ -149,6 +162,10 @@ class Endboss extends MovableObject {
     }, 120);
   }
 
+  /**
+   * Plays the Endboss's death animation sequence frame by frame.
+   * @returns {void}
+   */
   playDeadSequence() {
     let idx = 0;
     this.deadIntervalID = setInterval(() => {
@@ -162,21 +179,38 @@ class Endboss extends MovableObject {
     }, 200);
   }
 
+  /**
+   * Calculates the distance between the Endboss and the character.
+   * @returns {number} The absolute horizontal distance.
+   */
   distanceToCharacter() {
     if (!this.world || !this.world.character) return Infinity;
     return Math.abs(this.x - this.world.character.x);
   }
 
+  /**
+   * Reduces the Endboss's energy and records the last hit time if still alive.
+   * @returns {void}
+   */
   takeDamage() {
     this.energy -= 20;
     if (this.energy < 0) this.energy = 0;
     if (this.energy > 0) this.lastHit = Date.now();
   }
 
+  /**
+   * Sets the world context for the Endboss.
+   * @param {World} world - The current game world instance.
+   * @returns {void}
+   */
   setWorld(world) {
     this.world = world;
   }
 
+  /**
+   * Stops all running movement and animation intervals.
+   * @returns {void}
+   */
   stop() {
     clearInterval(this.movementIntervalID);
     clearInterval(this.animationIntervalID);

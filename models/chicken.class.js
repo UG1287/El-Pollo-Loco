@@ -1,3 +1,7 @@
+/**
+ * Represents a Chicken enemy in the game.
+ * Inherits from MovableObject.
+ */
 class Chicken extends MovableObject {
   y = 350;
   height = 80;
@@ -9,6 +13,10 @@ class Chicken extends MovableObject {
   ];
   IMAGE_DEAD = 'img/3_enemies_chicken/chicken_normal/2_dead/dead.png';
 
+  /**
+   * Creates a new Chicken instance, loads walking images,
+   * sets random position and speed, and starts the animation.
+   */
   constructor() {
     super().loadImage(this.IMAGES_WALKING[0]);
     this.loadImages(this.IMAGES_WALKING);
@@ -19,6 +27,13 @@ class Chicken extends MovableObject {
     this.animate();
   }
 
+  /**
+   * Starts the movement and animation of the chicken.
+   * - Moves left continuously.
+   * - Cycles through walking images to simulate animation.
+   *
+   * @returns {void}
+   */
   animate() {
     this.walkingInterval = setInterval(() => {
       this.moveLeft();
@@ -29,6 +44,14 @@ class Chicken extends MovableObject {
     }, 100);
   }
 
+  /**
+   * Handles the chicken's death:
+   * - Stops movement and animation.
+   * - Displays the dead image.
+   * - Removes the chicken from the world after a short delay.
+   *
+   * @returns {void}
+   */
   die() {
     this.loadImage(this.IMAGE_DEAD);
     clearInterval(this.walkingInterval);
@@ -39,6 +62,12 @@ class Chicken extends MovableObject {
     }, 300);
   }
 
+  /**
+   * Removes the chicken from the world's enemy array
+   * if it exists within the current level.
+   *
+   * @returns {void}
+   */
   removeChicken() {
     if (this.world) {
       let index = this.world.level.enemies.indexOf(this);

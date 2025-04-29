@@ -1,6 +1,17 @@
+/**
+ * Creates and returns the first level of the game.
+ * Initializes enemies, clouds, background objects, coins, and bottles.
+ * @returns {Level} The constructed Level instance.
+ */
 function createLevel1() {
   return new Level(
-    [new Chicken(), new Chicken(), new Chicken(), new SmallChicken(), new Endboss(2500)],
+    [
+      new Chicken(),
+      new Chicken(),
+      new Chicken(),
+      new SmallChicken(),
+      new Endboss(2500),
+    ],
     [new Cloud()],
     [
       new BackgroundObject('img/5_background/layers/air.png', -719),
@@ -15,6 +26,7 @@ function createLevel1() {
       new BackgroundObject('img/5_background/layers/3_third_layer/1.png', 0),
       new BackgroundObject('img/5_background/layers/2_second_layer/1.png', 0),
       new BackgroundObject('img/5_background/layers/1_first_layer/1.png', 0),
+
       new BackgroundObject('img/5_background/layers/air.png', 719),
       new BackgroundObject('img/5_background/layers/3_third_layer/2.png', 719),
       new BackgroundObject('img/5_background/layers/2_second_layer/2.png', 719),
@@ -33,6 +45,7 @@ function createLevel1() {
         'img/5_background/layers/1_first_layer/1.png',
         719 * 2
       ),
+
       new BackgroundObject('img/5_background/layers/air.png', 719 * 3),
       new BackgroundObject(
         'img/5_background/layers/3_third_layer/2.png',
@@ -46,6 +59,7 @@ function createLevel1() {
         'img/5_background/layers/1_first_layer/2.png',
         719 * 3
       ),
+
       new BackgroundObject('img/5_background/layers/air.png', 719 * 4),
       new BackgroundObject(
         'img/5_background/layers/3_third_layer/1.png',
@@ -74,10 +88,12 @@ function createLevel1() {
     ],
     [
       new Bottle(300, 370),
-      new Bottle(700, 370),
+      new Bottle(450, 370),
+      new Bottle(750, 370),
       new Bottle(850, 370),
-      new Bottle(950, 370),
+      new Bottle(1000, 370),
       new Bottle(1100, 370),
+      new Bottle(1200, 370),
     ]
   );
 }

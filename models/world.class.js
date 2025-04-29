@@ -1,3 +1,6 @@
+/**
+ * Represents the game world, managing the main character, enemies, collectibles, sounds, and game state.
+ */
 class World {
   character = new Character();
   canvas;
@@ -16,6 +19,13 @@ class World {
   runIntervalID;
   lastThrow = 0;
 
+  /**
+   * Creates a new World instance.
+   * @param {HTMLCanvasElement} canvas - The game's canvas element.
+   * @param {Object} keyboard - The keyboard input handler.
+   * @param {SoundManager} soundManager - The sound manager instance.
+   * @param {Object} level - The level data including enemies, clouds, coins, and bottles.
+   */
   constructor(canvas, keyboard, soundManager, level) {
     this.ctx = canvas.getContext('2d');
     this.canvas = canvas;
@@ -31,6 +41,10 @@ class World {
     this.run();
   }
 
+  /**
+   * Sets the world reference for the character and all enemies.
+   * @returns {void}
+   */
   setWorld() {
     this.character.world = this;
     this.level.enemies.forEach((e) => {
@@ -39,34 +53,47 @@ class World {
     });
   }
 
+  /**
+   * Starts the main game loop for checking collectibles and collisions.
+   * @returns {void}
+   */
   run() {
     this.runIntervalID = setInterval(() => {
       if (this.gameOver) return;
       this.checkCoinCollection();
       this.checkBottleCollection();
       this.checkBottleCollisions();
-    }, 200);
+    }, 60);
   }
 
+  /**
+   * Checks for collisions between the character and enemies.
+   * @returns {void}
+   */
   checkCollisions() {
     if (this.gameOver) return;
 
     this.level.enemies.forEach((enemy) => {
       if (enemy.energy === 0) return;
       if (!this.character.isColliding(enemy)) return;
+
       let charBottom = this.character.y + this.character.height;
       let enemyTop = enemy.y;
       let overlap = charBottom - enemyTop;
       let stomp = this.character.speedY < 0 && overlap > 0 && overlap < 40;
+
       if (stomp) {
         this.character.speedY = 15;
         enemy.energy = 0;
         enemy.die();
         return;
       }
+
       if (!this.character.isHurt()) {
+        this.character.energy -= enemy instanceof Endboss ? 20 : 5;
         this.character.hit();
         this.statusBar.setPercentage(this.character.energy);
+
         if (this.character.energy === 0 && !this.gameOver) {
           setTimeout(() => {
             this.gameOver = true;
@@ -77,6 +104,10 @@ class World {
     });
   }
 
+  /**
+   * Attempts to throw a bottle if allowed by timing and bottle count.
+   * @returns {void}
+   */
   tryThrowBottle() {
     let now = Date.now();
     if (now - this.lastThrow < 150) return;
@@ -90,14 +121,15 @@ class World {
     );
     this.throwableObjects.push(bottle);
     this.character.useBottle();
-    this.bottleStatusBar.setBottles(
-      this.character.bottleCount,
-      this.totalBottles
-    );
+    this.bottleStatusBar.setBottles(this.character.bottleCount, this.totalBottles);
     this.soundManager.playSound('throw');
     this.lastThrow = now;
   }
 
+  /**
+   * Checks for collisions between thrown bottles and enemies.
+   * @returns {void}
+   */
   checkBottleCollisions() {
     for (let i = 0; i < this.throwableObjects.length; i++) {
       let bottle = this.throwableObjects[i];
@@ -114,6 +146,7 @@ class World {
         } else {
           enemy.die();
         }
+
         this.soundManager.playSound('bottle_break');
         this.throwableObjects.splice(i, 1);
         i--;
@@ -122,6 +155,10 @@ class World {
     }
   }
 
+  /**
+   * Sets up the key listener for restarting after victory.
+   * @returns {void}
+   */
   setupVictoryKeyListener() {
     let t = setInterval(() => {
       if (this.keyboard.ENTER) {
@@ -131,6 +168,10 @@ class World {
     }, 100);
   }
 
+  /**
+   * Sets up the key listener for restarting after game over.
+   * @returns {void}
+   */
   setupGameOverKeyListener() {
     let t = setInterval(() => {
       if (this.keyboard.ENTER) {
@@ -140,6 +181,10 @@ class World {
     }, 100);
   }
 
+  /**
+   * Displays the victory screen and stops the game.
+   * @returns {void}
+   */
   showVictoryScreen() {
     this.gameOver = true;
     this.soundManager.stopAllSounds();
@@ -152,11 +197,7 @@ class World {
     this.ctx.fillStyle = 'white';
     this.ctx.font = '48px Arial';
     this.ctx.textAlign = 'center';
-    this.ctx.fillText(
-      'Victory!',
-      this.canvas.width / 2,
-      this.canvas.height / 2
-    );
+    this.ctx.fillText('Victory!', this.canvas.width / 2, this.canvas.height / 2);
 
     let btn = document.getElementById('restartButton');
     if (isTouchDevice()) {
@@ -166,21 +207,26 @@ class World {
       }
     } else {
       this.ctx.font = '28px Arial';
-      this.ctx.fillText(
-        'Press ENTER to restart',
-        this.canvas.width / 2,
-        this.canvas.height / 2 + 60
-      );
+      this.ctx.fillText('Press ENTER to restart', this.canvas.width / 2, this.canvas.height / 2 + 60);
       if (btn) btn.style.display = 'none';
     }
     this.setupVictoryKeyListener();
   }
 
-  showGameOverScreen() {
+  /**
+   * Displays the game over screen and stops the game.
+   * @returns {Promise<void>}
+   */
+  async showGameOverScreen() {
     this.gameOver = true;
-    this.soundManager.stopAllSounds();
-    this.soundManager.playSound('lose');
+    this.soundManager.gameOver = true;
     clearInterval(this.runIntervalID);
+
+    this.soundManager.stopBackgroundMusic();
+
+    setTimeout(() => {
+      this.soundManager.playSound('lose');
+    }, 200);
 
     let img = new Image();
     img.src = 'img/9_intro_outro_screens/game_over/OhNo.png';
@@ -194,11 +240,7 @@ class World {
         this.ctx.fillStyle = 'white';
         this.ctx.font = '20px Arial';
         this.ctx.textAlign = 'center';
-        this.ctx.fillText(
-          'Press ENTER to retry',
-          this.canvas.width / 2,
-          this.canvas.height / 2 + 100
-        );
+        this.ctx.fillText('Press ENTER to retry', this.canvas.width / 2, this.canvas.height / 2 + 100);
       }
 
       let btn = document.getElementById('restartButton');
@@ -209,13 +251,18 @@ class World {
         }
       } else if (btn) btn.style.display = 'none';
     };
+
     this.setupGameOverKeyListener();
   }
 
+  /**
+   * Checks if the character collects any coins.
+   * @returns {void}
+   */
   checkCoinCollection() {
     if (!this.level || !this.level.coins) return;
     this.level.coins.forEach((coin, i) => {
-      if (!this.character.isColliding(coin)) return;
+      if (!this.isCollectableColliding(this.character, coin)) return;
       this.level.coins.splice(i, 1);
       this.coinsCollected++;
       this.soundManager.playSound('coin');
@@ -223,21 +270,41 @@ class World {
     });
   }
 
+  /**
+   * Checks collision between a character and a collectible item.
+   * @param {Character} character - The character object.
+   * @param {MovableObject} item - The collectible item.
+   * @param {number} [buffer=10] - Optional buffer around the collision box.
+   * @returns {boolean} True if collision is detected, false otherwise.
+   */
+  isCollectableColliding(character, item, buffer = 10) {
+    return (
+      character.x + buffer < item.x + item.width - buffer &&
+      character.x + character.width - buffer > item.x + buffer &&
+      character.y + buffer < item.y + item.height - buffer &&
+      character.y + character.height - buffer > item.y + buffer
+    );
+  }
+
+  /**
+   * Checks if the character collects any bottles.
+   * @returns {void}
+   */
   checkBottleCollection() {
     if (!this.level.bottles) return;
     this.level.bottles.forEach((bottle, i) => {
-      if (!this.character.isColliding(bottle)) return;
+      if (!this.isCollectableColliding(this.character, bottle)) return;
       bottle.stop();
       this.level.bottles.splice(i, 1);
       this.character.collectBottle();
-      this.bottleStatusBar.setBottles(
-        this.character.bottleCount,
-        this.totalBottles
-      );
-      this.soundManager.playSound('bottle_pickup');
+      this.bottleStatusBar.setBottles(this.character.bottleCount, this.totalBottles);
     });
   }
 
+  /**
+   * Draws all objects in the world onto the canvas.
+   * @returns {void}
+   */
   draw() {
     if (this.gameOver) return;
 
@@ -265,10 +332,20 @@ class World {
     requestAnimationFrame(() => this.draw());
   }
 
+  /**
+   * Adds an array of objects to the map.
+   * @param {MovableObject[]} arr - Array of movable objects.
+   * @returns {void}
+   */
   addObjectsToMap(arr) {
     arr.forEach((o) => this.addToMap(o));
   }
 
+  /**
+   * Adds a single object to the map and handles direction flipping.
+   * @param {MovableObject} obj - The object to add.
+   * @returns {void}
+   */
   addToMap(obj) {
     if (obj.otherDirection) this.flipImage(obj);
     obj.draw(this.ctx);
@@ -276,6 +353,11 @@ class World {
     if (obj.otherDirection) this.flipImageBack(obj);
   }
 
+  /**
+   * Flips the object's image horizontally.
+   * @param {MovableObject} obj - The object to flip.
+   * @returns {void}
+   */
   flipImage(obj) {
     this.ctx.save();
     this.ctx.translate(obj.width, 0);
@@ -283,6 +365,11 @@ class World {
     obj.x *= -1;
   }
 
+  /**
+   * Flips the object's image back to its original direction.
+   * @param {MovableObject} obj - The object to flip back.
+   * @returns {void}
+   */
   flipImageBack(obj) {
     obj.x *= -1;
     this.ctx.restore();

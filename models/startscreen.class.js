@@ -1,4 +1,14 @@
+/**
+ * Represents the start screen of the game.
+ * Handles displaying the start image and creating the start buttons.
+ */
 class StartScreen {
+  /**
+   * Creates a new StartScreen instance.
+   * @param {HTMLCanvasElement} canvas - The canvas element to draw the start screen on.
+   * @param {Function} startCallback - The function to call when starting the game.
+   * @param {Object} keyboard - The keyboard input handler.
+   */
   constructor(canvas, startCallback, keyboard) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
@@ -10,6 +20,10 @@ class StartScreen {
     this.showStartScreen();
   }
 
+  /**
+   * Displays the start screen image and creates the start and explanation buttons.
+   * @returns {void}
+   */
   showStartScreen() {
     this.startImage.onload = () => {
       this.ctx.drawImage(
@@ -34,6 +48,10 @@ class StartScreen {
     }
   }
 
+  /**
+   * Creates the start and explanation buttons and adds them to the document.
+   * @returns {void}
+   */
   createButtons() {
     let container = document.getElementById('startScreenButtons');
     if (!container) {
@@ -68,6 +86,10 @@ class StartScreen {
     container.appendChild(explanationButton);
   }
 
+  /**
+   * Hides the start screen elements and touch controls.
+   * @returns {void}
+   */
   hideStartScreen() {
     let container = document.getElementById('startScreenButtons');
     if (container) {

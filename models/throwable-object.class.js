@@ -1,4 +1,14 @@
+/**
+ * Represents a throwable object (e.g., salsa bottle) in the game.
+ * Inherits from MovableObject.
+ */
 class ThrowableObject extends MovableObject {
+  /**
+   * Creates a new ThrowableObject instance at the specified position and direction.
+   * @param {number} x - The starting x-position.
+   * @param {number} y - The starting y-position.
+   * @param {number} direction - The horizontal throw direction (1 for right, -1 for left).
+   */
   constructor(x, y, direction) {
     super().loadImage('img/6_salsa_bottle/salsa_bottle.png');
     this.x = x;
@@ -9,6 +19,10 @@ class ThrowableObject extends MovableObject {
     this.throw();
   }
 
+  /**
+   * Initiates the throw motion by applying gravity and moving horizontally.
+   * @returns {void}
+   */
   throw() {
     this.speedY = 20;
     this.applyGravity();
