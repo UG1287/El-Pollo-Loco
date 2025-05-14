@@ -197,9 +197,13 @@ class SoundManager {
    * @returns {void}
    */
   updateMuteIcon() {
-    const muteBtn = document.getElementById('btnMute');
-    if (muteBtn) {
-      muteBtn.innerText = this.muted ? '🔇' : '🔈';
-    }
+    const icons = [
+      document.getElementById('btnMuteMobile'),
+      document.getElementById('btnMuteDesktop'),
+    ];
+    icons.forEach((btn) => {
+      if (btn) btn.innerText = this.muted ? '🔇' : '🔈';
+    });
   }
+  
 }

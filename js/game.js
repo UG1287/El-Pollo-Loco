@@ -64,6 +64,7 @@ function hasRealTouch() {
 window.addEventListener('load', () => {
   handleOrientation();
   setupTouchControls();
+  setupMuteButton();
 });
 
 window.addEventListener('orientationchange', () => {
@@ -169,6 +170,32 @@ function toggleFullscreen() {
   }
 }
 
+function setupMuteButton() {
+  const mobileBtn = document.getElementById('btnMuteMobile');
+  const desktopBtn = document.getElementById('btnMuteDesktop');
+
+  const handleToggle = (e) => {
+    e.preventDefault();
+    soundManager.toggleMute();
+  };
+
+  if (mobileBtn) {
+    mobileBtn.addEventListener('click', handleToggle);
+    mobileBtn.addEventListener('touchstart', handleToggle);
+  }
+
+  if (desktopBtn) {
+    desktopBtn.addEventListener('click', handleToggle);
+    desktopBtn.addEventListener('touchstart', handleToggle);
+  }
+
+  soundManager.updateMuteIcon();
+}
+
+
+
+
+
 /**
  * Returns `true` if the current device supports touch input.
  * @returns {boolean}
@@ -228,10 +255,6 @@ function setupTouchControls() {
     btnThrow.ontouchend = (e) => {
       e.preventDefault();
       keyboard.D = false;
-    };
-    btnMute.onclick = btnMute.ontouchstart = (e) => {
-      e.preventDefault();
-      soundManager.toggleMute();
     };
   }
 }

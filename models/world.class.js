@@ -60,6 +60,10 @@ class World {
   run() {
     this.runIntervalID = setInterval(() => {
       if (this.gameOver) return;
+      if (!this.lockCamera && this.character.x >= 4000) {
+        this.lockCamera = true;
+        this.character.x = 4100;
+      }
       this.checkCoinCollection();
       this.checkBottleCollection();
       this.checkBottleCollisions();
@@ -310,14 +314,26 @@ class World {
 
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
+    if (this.lockCamera) {
+      this.camera_x = -4000 +100; // Kamera bleibt auf Bossfight-Areal fokussiert
+    } else {
+      this.camera_x = -this.character.x + 100;
+    }
+    console.log('camera_x:', this.camera_x, 'charX:', this.character.x);
+
     this.ctx.translate(this.camera_x, 0);
     this.addObjectsToMap(this.level.backgroundObjects);
+    if (this.lockCamera) {
+      this.drawBossWalls(this.ctx);
+    }
 
     this.ctx.translate(-this.camera_x, 0);
     this.addToMap(this.statusBar);
     this.addToMap(this.coinStatusBar);
     this.addToMap(this.bottleStatusBar);
     this.ctx.translate(this.camera_x, 0);
+
+    
 
     this.addToMap(this.character);
     this.addObjectsToMap(this.level.enemies);
@@ -331,6 +347,33 @@ class World {
 
     requestAnimationFrame(() => this.draw());
   }
+
+  drawBossWalls(ctx) {
+    // Linke Wand bei x = 4000
+    ctx.fillStyle = 'rgba(60, 60, 60, 0.7)';
+    ctx.fillRect(4000, 0, 20, this.canvas.height);
+  
+    // Rechte Wand bei x = 5300
+    ctx.fillStyle = 'rgba(60, 60, 60, 0.7)';
+    ctx.fillRect(5300, 0, 20, this.canvas.height);
+  
+    // Optional: Stacheldraht oben auf beiden Seiten
+    const spikeCount = 10;
+    for (let i = 0; i < spikeCount; i++) {
+      ctx.beginPath();
+      ctx.moveTo(4000 + i * 2, 0);
+      ctx.lineTo(4000 + i * 2 + 1, 10);
+      ctx.strokeStyle = 'silver';
+      ctx.stroke();
+  
+      ctx.beginPath();
+      ctx.moveTo(5300 + i * 2, 0);
+      ctx.lineTo(5300 + i * 2 + 1, 10);
+      ctx.strokeStyle = 'silver';
+      ctx.stroke();
+    }
+  }
+  
 
   /**
    * Adds an array of objects to the map.

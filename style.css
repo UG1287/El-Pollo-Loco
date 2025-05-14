@@ -146,7 +146,7 @@ canvas {
   background-color: transparent;
 }
 
-#btnMute {
+.muteButton {
   position: fixed;
   top: 20px;
   right: 20px;

@@ -3,7 +3,7 @@ class Endboss extends MovableObject {
   height = 450;
   width = 300;
   speed = 1.9;
-  energy = 80;
+  energy = 150;
   chaseRange = 1000;
   minDistance = 100;
   movementIntervalID;
@@ -12,6 +12,8 @@ class Endboss extends MovableObject {
   deadPlayed = false;
   currentAnimationImages = [];
   alertTimePassed = false;
+  lastHitTime = 0;
+
 
   IMAGES_WALK = [
     'img/4_enemie_boss_chicken/1_walk/G1.png',
@@ -95,6 +97,10 @@ class Endboss extends MovableObject {
         this.x + this.width > -this.world.camera_x &&
         this.x < -this.world.camera_x + this.world.canvas.width;
 
+        if (bossIsVisible) {
+          this.world.lockCamera = true;
+        }
+
       if (Math.abs(distX) < this.chaseRange && bossIsVisible) {
         if (!this.alertStarted) {
           this.alertStarted = true;
@@ -114,6 +120,9 @@ class Endboss extends MovableObject {
             this.otherDirection = false;
             this.moveLeft();
           }
+        }
+        if (Math.random() < 0.01 && this.isAboveGround() === false) {
+          this.speedY = 25;
         }
       }
     }, 1000 / 60);
@@ -153,10 +162,11 @@ class Endboss extends MovableObject {
         }
       }
 
-      if (this.currentAnimationImages !== newAnimation) {
+      if (this.currentAnimationImages !== newAnimation && !this.isHurt()) {
         this.currentAnimationImages = newAnimation;
         this.currentImage = 0;
       }
+      
 
       this.playAnimation(this.currentAnimationImages);
     }, 120);
@@ -193,10 +203,18 @@ class Endboss extends MovableObject {
    * @returns {void}
    */
   takeDamage() {
+    const now = Date.now();
+    if (now - this.lastHitTime < 1000) return; // 1 Sekunde Unverwundbarkeit
+    this.lastHitTime = now;
+    this.lastHit = now; // <- wichtig für isHurt()
+  
     this.energy -= 20;
     if (this.energy < 0) this.energy = 0;
-    if (this.energy > 0) this.lastHit = Date.now();
+  
+    this.currentAnimationImages = this.IMAGES_HURT;
+    this.currentImage = 0;
   }
+  
 
   /**
    * Sets the world context for the Endboss.
