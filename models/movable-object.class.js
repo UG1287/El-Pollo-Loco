@@ -11,31 +11,35 @@ class MovableObject extends DrawableObject {
   lastHit = 0;
   currentAnimationImages = [];
   animationFrameIndex = 0;
+  GROUND_LEVEL = 180;
 
   /**
    * Applies gravity to the object, pulling it downward over time.
    * @returns {void}
    */
   applyGravity() {
-    setInterval(() => {
-      if (this.isAboveGround() || this.speedY > 0) {
-        this.y -= this.speedY;
-        this.speedY -= this.acceleration;
+  setInterval(() => {
+    if (this.isAboveGround() || this.speedY > 0) {
+      this.y -= this.speedY;
+      this.speedY -= this.acceleration;
+      if (this.y > this.GROUND_LEVEL) {
+        this.y = this.GROUND_LEVEL;
+        this.speedY = 0;
       }
-    }, 1000 / 30);
-  }
+    }
+  }, 1000 / 30);
+}
+
 
   /**
    * Checks if the object is currently above the ground.
    * @returns {boolean} True if above ground, false otherwise.
    */
   isAboveGround() {
-    if (this instanceof ThrowableObject) {
-      return true;
-    } else {
-      return this.y < 230;
-    }
-  }
+  return this.y < this.GROUND_LEVEL;
+}
+
+
 
   /**
    * Checks collision with another movable object.
@@ -72,7 +76,7 @@ class MovableObject extends DrawableObject {
    */
   isHurt() {
     let timePassed = (Date.now() - this.lastHit) / 1000;
-    return timePassed < 0.25;
+    return timePassed < 0.7;
   }
 
   /**

@@ -18,6 +18,8 @@ class World {
   gameOver = false;
   runIntervalID;
   lastThrow = 0;
+  isStopped = false;
+
 
   /**
    * Creates a new World instance.
@@ -60,10 +62,14 @@ class World {
   run() {
     this.runIntervalID = setInterval(() => {
       if (this.gameOver) return;
-      if (!this.lockCamera && this.character.x >= 4000) {
-        this.lockCamera = true;
-        this.character.x = 4100;
-      }
+
+      // ✅ Kamera wird bei Eintritt gelockt und Character ins Sichtfeld gesetzt
+      if (!this.lockCamera && this.character.x >= 2400) {
+  this.lockCamera = true;
+  this.character.x = 2400; // Position innerhalb des fixierten Bildes
+}
+
+
       this.checkCoinCollection();
       this.checkBottleCollection();
       this.checkBottleCollisions();
@@ -125,7 +131,10 @@ class World {
     );
     this.throwableObjects.push(bottle);
     this.character.useBottle();
-    this.bottleStatusBar.setBottles(this.character.bottleCount, this.totalBottles);
+    this.bottleStatusBar.setBottles(
+      this.character.bottleCount,
+      this.totalBottles
+    );
     this.soundManager.playSound('throw');
     this.lastThrow = now;
   }
@@ -201,7 +210,11 @@ class World {
     this.ctx.fillStyle = 'white';
     this.ctx.font = '48px Arial';
     this.ctx.textAlign = 'center';
-    this.ctx.fillText('Victory!', this.canvas.width / 2, this.canvas.height / 2);
+    this.ctx.fillText(
+      'Victory!',
+      this.canvas.width / 2,
+      this.canvas.height / 2
+    );
 
     let btn = document.getElementById('restartButton');
     if (isTouchDevice()) {
@@ -211,7 +224,11 @@ class World {
       }
     } else {
       this.ctx.font = '28px Arial';
-      this.ctx.fillText('Press ENTER to restart', this.canvas.width / 2, this.canvas.height / 2 + 60);
+      this.ctx.fillText(
+        'Press ENTER to restart',
+        this.canvas.width / 2,
+        this.canvas.height / 2 + 60
+      );
       if (btn) btn.style.display = 'none';
     }
     this.setupVictoryKeyListener();
@@ -244,7 +261,11 @@ class World {
         this.ctx.fillStyle = 'white';
         this.ctx.font = '20px Arial';
         this.ctx.textAlign = 'center';
-        this.ctx.fillText('Press ENTER to retry', this.canvas.width / 2, this.canvas.height / 2 + 100);
+        this.ctx.fillText(
+          'Press ENTER to retry',
+          this.canvas.width / 2,
+          this.canvas.height / 2 + 100
+        );
       }
 
       let btn = document.getElementById('restartButton');
@@ -281,14 +302,10 @@ class World {
    * @param {number} [buffer=10] - Optional buffer around the collision box.
    * @returns {boolean} True if collision is detected, false otherwise.
    */
-  isCollectableColliding(character, item, buffer = 10) {
-    return (
-      character.x + buffer < item.x + item.width - buffer &&
-      character.x + character.width - buffer > item.x + buffer &&
-      character.y + buffer < item.y + item.height - buffer &&
-      character.y + character.height - buffer > item.y + buffer
-    );
-  }
+  isCollectableColliding(character, item) {
+  return character.isColliding(item);
+}
+
 
   /**
    * Checks if the character collects any bottles.
@@ -301,7 +318,10 @@ class World {
       bottle.stop();
       this.level.bottles.splice(i, 1);
       this.character.collectBottle();
-      this.bottleStatusBar.setBottles(this.character.bottleCount, this.totalBottles);
+      this.bottleStatusBar.setBottles(
+        this.character.bottleCount,
+        this.totalBottles
+      );
     });
   }
 
@@ -310,53 +330,71 @@ class World {
    * @returns {void}
    */
   draw() {
-    if (this.gameOver) return;
+  if (this.gameOver || this.isStopped) return;
 
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-    if (this.lockCamera) {
-      this.camera_x = -4000 +100; // Kamera bleibt auf Bossfight-Areal fokussiert
-    } else {
-      this.camera_x = -this.character.x + 100;
-    }
-    console.log('camera_x:', this.camera_x, 'charX:', this.character.x);
+  // --- Kameraposition bestimmen ---
+  if (this.lockCamera) {
+  const bossAreaCenter = 2500; // exakt auf Endboss ausgerichtet
+  const canvasHalf = this.canvas.width / 2;
+  this.camera_x = -bossAreaCenter + canvasHalf;
+} else {
+  this.camera_x = -this.character.x + 100;
+}
 
-    this.ctx.translate(this.camera_x, 0);
-    this.addObjectsToMap(this.level.backgroundObjects);
-    if (this.lockCamera) {
-      this.drawBossWalls(this.ctx);
-    }
 
-    this.ctx.translate(-this.camera_x, 0);
-    this.addToMap(this.statusBar);
-    this.addToMap(this.coinStatusBar);
-    this.addToMap(this.bottleStatusBar);
-    this.ctx.translate(this.camera_x, 0);
 
-    
+  // --- Zeichenbereich transformieren ---
+  this.ctx.save();
+  this.ctx.translate(this.camera_x, 0);
 
-    this.addToMap(this.character);
-    this.addObjectsToMap(this.level.enemies);
-    this.addObjectsToMap(this.level.clouds);
-    this.addObjectsToMap(this.throwableObjects);
-    this.addObjectsToMap(this.level.coins);
-    this.addObjectsToMap(this.level.bottles);
-
-    this.ctx.translate(-this.camera_x, 0);
-    this.checkCollisions();
-
-    requestAnimationFrame(() => this.draw());
+  // --- Hintergrund & Bosskäfig ---
+  this.addObjectsToMap(this.level.backgroundObjects);
+  if (this.lockCamera) {
+    this.drawBossWalls(this.ctx);
   }
+
+  // --- Spielfiguren & Objekte ---
+  this.addToMap(this.character);
+  this.addObjectsToMap(this.level.enemies);
+  this.addObjectsToMap(this.level.clouds);
+  this.addObjectsToMap(this.throwableObjects);
+  this.addObjectsToMap(this.level.coins);
+  this.addObjectsToMap(this.level.bottles);
+
+  // --- Transformation zurücksetzen ---
+  this.ctx.restore();
+
+  // --- HUD (immer im sichtbaren Bereich) ---
+  this.addToMap(this.statusBar);
+  this.addToMap(this.coinStatusBar);
+  this.addToMap(this.bottleStatusBar);
+
+  this.checkCollisions();
+
+  if (this.lockCamera) {
+  const leftLimit = 2150;
+  const rightLimit = 2850;
+
+  if (this.character.x < leftLimit) this.character.x = leftLimit;
+  if (this.character.x > rightLimit) this.character.x = rightLimit;
+}
+
+
+  requestAnimationFrame(() => this.draw());
+}
+
 
   drawBossWalls(ctx) {
     // Linke Wand bei x = 4000
     ctx.fillStyle = 'rgba(60, 60, 60, 0.7)';
     ctx.fillRect(4000, 0, 20, this.canvas.height);
-  
+
     // Rechte Wand bei x = 5300
     ctx.fillStyle = 'rgba(60, 60, 60, 0.7)';
     ctx.fillRect(5300, 0, 20, this.canvas.height);
-  
+
     // Optional: Stacheldraht oben auf beiden Seiten
     const spikeCount = 10;
     for (let i = 0; i < spikeCount; i++) {
@@ -365,7 +403,7 @@ class World {
       ctx.lineTo(4000 + i * 2 + 1, 10);
       ctx.strokeStyle = 'silver';
       ctx.stroke();
-  
+
       ctx.beginPath();
       ctx.moveTo(5300 + i * 2, 0);
       ctx.lineTo(5300 + i * 2 + 1, 10);
@@ -373,7 +411,6 @@ class World {
       ctx.stroke();
     }
   }
-  
 
   /**
    * Adds an array of objects to the map.
@@ -385,6 +422,22 @@ class World {
   }
 
   /**
+ * Stops all game intervals and animations.
+ * @returns {void}
+ */
+stopAll() {
+    clearInterval(this.runIntervalID);
+    this.isStopped = true;
+    if (this.level && this.level.enemies) {
+      this.level.enemies.forEach((enemy) => {
+        if (enemy.stop) enemy.stop();
+      });
+    }
+}
+
+
+
+  /**
    * Adds a single object to the map and handles direction flipping.
    * @param {MovableObject} obj - The object to add.
    * @returns {void}
@@ -393,6 +446,11 @@ class World {
     if (obj.otherDirection) this.flipImage(obj);
     obj.draw(this.ctx);
     obj.drawFrame(this.ctx);
+
+    // Debug: zeichne Hitbox
+    this.ctx.strokeStyle = 'red';
+    this.ctx.strokeRect(obj.x, obj.y, obj.width, obj.height);
+
     if (obj.otherDirection) this.flipImageBack(obj);
   }
 

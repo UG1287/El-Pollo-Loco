@@ -16,6 +16,7 @@ class ThrowableObject extends MovableObject {
     this.height = 60;
     this.width = 60;
     this.throwDirection = direction;
+    this.GROUND_LEVEL = 360;
     this.throw();
   }
 

@@ -52,11 +52,11 @@ class DrawableObject {
    * @returns {void}
    */
   drawFrame(ctx) {
-    /*ctx.beginPath();
+    ctx.beginPath();
     ctx.lineWidth = '3';
     
     if (this instanceof Character) {
-      const shrinkTop = 20;
+      const shrinkTop = 70;
       const shrinkBottom = 20;
       const reducedHeight = this.height - shrinkTop - shrinkBottom;
   
@@ -67,7 +67,7 @@ class DrawableObject {
       ctx.rect(this.x, this.y, this.width, this.height);
     }
   
-    ctx.stroke();*/
+    ctx.stroke();
   }
 
   /**

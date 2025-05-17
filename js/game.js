@@ -20,12 +20,16 @@ function init() {
   document.getElementById('mobileImpressumLink').style.display = 'block';
   soundManager.updateMuteIcon();
   handleOrientation();
+  setupSoundUnlockOnClick();
+}
+
+function setupSoundUnlockOnClick() {
   window.addEventListener(
     'click',
     () => {
-      if (soundManager && soundManager.sounds['background']) {
+      if (soundManager && !soundManager.userInteracted && !gameStarted) {
         soundManager.userInteracted = true;
-        soundManager.playBackgroundMusic();
+        console.log('User unlocked audio for the first time');
       }
     },
     { once: true }
@@ -65,6 +69,7 @@ window.addEventListener('load', () => {
   handleOrientation();
   setupTouchControls();
   setupMuteButton();
+  setupHomeButton();
 });
 
 window.addEventListener('orientationchange', () => {
@@ -96,7 +101,10 @@ function startGame() {
     document.getElementById('mobileImpressumLink').style.display = 'none';
   }
 
-  if (!soundManager.muted && soundManager.userInteracted) {
+  if (!soundManager.userInteracted) {
+    soundManager.userInteracted = true;
+    soundManager.playBackgroundMusic();
+  } else if (!soundManager.muted) {
     setTimeout(() => soundManager.playBackgroundMusic(), 500);
   }
 
@@ -192,9 +200,48 @@ function setupMuteButton() {
   soundManager.updateMuteIcon();
 }
 
+function setupHomeButton() {
+  const btnHomeDesktop = document.getElementById('btnHomeDesktop');
+  const btnHomeMobile = document.getElementById('btnHomeMobile');
 
+  const handleHome = (e) => {
+    e.preventDefault();
+    returnToStartScreen();
+  };
 
+  if (btnHomeDesktop) btnHomeDesktop.onclick = handleHome;
+  if (btnHomeMobile) btnHomeMobile.onclick = handleHome;
+}
 
+function returnToStartScreen() {
+  if (world) {
+    world.stopAll();
+    world = null;
+  }
+
+  // Stoppe Sound komplett (Hintergrund + Effekte)
+  if (soundManager) {
+    soundManager.stopAllSounds();
+    soundManager.userInteracted = false; // damit Musik nicht automatisch läuft
+  }
+
+  gameStarted = false; // ermöglicht korrektes Restart-Verhalten
+
+  // Startscreen anzeigen
+  startScreen = new StartScreen(canvas, startGame, keyboard);
+
+  // Restart-Button & Touch-Controls ausblenden
+  let restartBtn = document.getElementById('restartButton');
+  if (restartBtn) {
+    restartBtn.style.display = 'none';
+    restartBtn.onclick = null;
+  }
+
+  document.getElementById('touchControls').style.display = 'none';
+  document.getElementById('mobileImpressumLink').style.display = 'block';
+
+  setupSoundUnlockOnClick();
+}
 
 /**
  * Returns `true` if the current device supports touch input.

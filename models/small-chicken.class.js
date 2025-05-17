@@ -3,7 +3,7 @@
  * Inherits from Chicken.
  */
 class SmallChicken extends Chicken {
-    y = 370;
+    
     height = 60;
     width = 60;
   
@@ -19,14 +19,17 @@ class SmallChicken extends Chicken {
      * Loads specific images and starts a slower animation loop.
      * @param {number} x - The horizontal position of the SmallChicken.
      */
-    constructor(x) {
+    constructor(x = 200 + Math.random() * 500) {
       super();
       clearInterval(this.walkingInterval);
       clearInterval(this.animationInterval);
       this.loadImage(this.IMAGES_WALKING[0]);
       this.loadImages(this.IMAGES_WALKING);
       this.loadImages(this.IMAGES_DEAD);
+      this.x = x;
+      this.y = this.GROUND_LEVEL + 190;
       this.IMAGE_DEAD = this.IMAGES_DEAD[0];
+
       this.animateSmall();
     }
   

@@ -3,7 +3,7 @@
  * Inherits from MovableObject.
  */
 class Character extends MovableObject {
-  height = 200;
+  height = 250;
   width = 90;
   bottleCount = 0;
   world;
@@ -84,6 +84,7 @@ class Character extends MovableObject {
     this.loadImages(this.IMAGES_IDLE);
     this.loadImages(this.IMAGES_LONG_IDLE);
     this.loadImages(this.IMAGES_DEAD);
+    this.y = this.GROUND_LEVEL;
     this.applyGravity();
   }
 
@@ -219,7 +220,7 @@ class Character extends MovableObject {
    * @returns {boolean} True if a collision is detected, false otherwise.
    */
   isColliding(mo) {
-    const shrinkTop = 100;
+    const shrinkTop = 150;
     const shrinkBottom = 10;
     const shrinkLeft = 30;
     const shrinkRight = 30;

@@ -3,7 +3,7 @@ class Endboss extends MovableObject {
   height = 450;
   width = 300;
   speed = 1.9;
-  energy = 150;
+  energy = 100;
   chaseRange = 1000;
   minDistance = 100;
   movementIntervalID;
