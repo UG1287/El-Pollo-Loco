@@ -270,7 +270,7 @@ function setupTouchControls() {
   let btnThrow = document.getElementById('btnThrow');
   let btnMute = document.getElementById('btnMute');
 
-  if (btnLeft && btnRight && btnJump && btnThrow && btnMute) {
+  if (btnLeft && btnRight && btnJump && btnThrow) {
     btnLeft.ontouchstart = (e) => {
       e.preventDefault();
       keyboard.LEFT = true;

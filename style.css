@@ -53,7 +53,7 @@ canvas {
   border: none;
   cursor: pointer;
   font-size: 20px;
-  margin-top: 395px;
+  margin-top: 370px;
   margin-right: 10px;
   width: 120px;
   height: 40px;
@@ -86,9 +86,10 @@ canvas {
 #impressumOverlay button {
   margin-top: 30px;
   padding: 10px 20px;
-  font-size: 18px;
+  font-family: 'Zabars';
+  font-size: 20px;
   background: orange;
-  color: white;
+  color: black;
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -105,6 +106,7 @@ canvas {
   height: 100%;
   pointer-events: none;
   background-color: transparent;
+  z-index: 200;
 }
 
 #leftControls {
@@ -133,8 +135,7 @@ canvas {
   background-color: transparent;
 }
 
-#touchControls,
-#mobileImpressumLink {
+#touchControls {
   display: none;
 }
 
@@ -165,7 +166,6 @@ canvas {
   border-radius: 50%;
   pointer-events: auto;
   font-size: 20px;
-  z-index: 1000;
 }
 
 #btnMuteDesktop {
@@ -206,6 +206,32 @@ canvas {
 
 #desktopImpressum {
   display: block;
+}
+
+#btnImpressum {
+  width: 120px;
+  height: 40px;
+  font-family: 'Zabars';
+  font-size: 20px;
+  background: transparent;
+  border: none;
+  color: black;
+  cursor: pointer;
+  text-align: center;
+  padding: 0;
+}
+
+#btnImpressum:hover {
+  background-color: rgba(243, 158, 0, 0.196);
+}
+
+#startScreenButtons {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%);
+  z-index: 1001;
+  display: flex;
+  gap: 20px;
 }
 
 /*Smartphones */
@@ -261,21 +287,6 @@ canvas {
   footer {
     display: none;
   }
-
-  #mobileImpressumLink {
-    position: absolute;
-    bottom: 5vh;
-    right: 3dvw;
-    font-size: 10px;
-    text-align: center;
-    width: 10%;
-    z-index: 1002;
-  }
-
-  #mobileImpressumLink a {
-    color: black;
-    text-decoration: none;
-  }
 }
 
 @media (max-width: 768px) and (hover: none) and (pointer: coarse) {
@@ -306,6 +317,35 @@ canvas {
     overflow: hidden;
     background: none;
     background-color: #000;
+  }
+
+  #mobileImpressumLink {
+    position: fixed;
+    bottom: 5vh;
+    right: 3vw;
+    font-size: 10px;
+    text-align: center;
+    width: 10%;
+    z-index: 1002;
+  }
+
+  #mobileImpressumLink a {
+    color: black;
+    text-decoration: none;
+  }
+
+  #startScreenButtons {
+    position: fixed;
+    bottom: 5vh;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 20px;
+    z-index: 1002;
+  }
+
+  .explanationButton {
+    margin: 0;
   }
 
   #fullscreen,

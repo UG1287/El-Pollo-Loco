@@ -57,11 +57,6 @@ class StartScreen {
     if (!container) {
       container = document.createElement('div');
       container.id = 'startScreenButtons';
-      container.style.position = 'absolute';
-      container.style.top = '50%';
-      container.style.left = '50%';
-      container.style.transform = 'translate(-50%, -50%)';
-      container.style.zIndex = '1001';
       document.body.appendChild(container);
     }
 
