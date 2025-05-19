@@ -21,6 +21,11 @@ class ThrowableObject extends MovableObject {
     this.throw();
   }
 
+  /**
+   * Applies gravity to the object by updating its vertical position and speed.
+   * Should be called once to start continuous gravity effect.
+   * @returns {void}
+   */
   applyGravity() {
     this.gravityInterval = setInterval(() => {
       this.y -= this.speedY;

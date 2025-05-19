@@ -31,11 +31,19 @@ class StartScreen {
     }
   }
 
+  /**
+   * Draws the start screen and creates the buttons.
+   * @returns {void}
+   */
   drawStartScreenAndButtons() {
     this.drawStartImage();
     this.createButtons();
   }
 
+  /**
+   * Draws the start image on the canvas.
+   * @returns {void}
+   */
   drawStartImage() {
     this.ctx.drawImage(
       this.startImage,
@@ -66,6 +74,10 @@ class StartScreen {
     );
   }
 
+  /**
+   * Retrieves or creates the container for the start screen buttons.
+   * @returns {HTMLElement} The button container element.
+   */
   getOrCreateButtonContainer() {
     let container = document.getElementById('startScreenButtons');
     if (!container) {
@@ -76,6 +88,12 @@ class StartScreen {
     return container;
   }
 
+  /**
+   * Creates an individual button element with text and click handler.
+   * @param {string} text - The button label text.
+   * @param {Function} onClick - The function to execute on click.
+   * @returns {HTMLButtonElement} The created button element.
+   */
   createButton(text, onClick) {
     let btn = document.createElement('button');
     btn.textContent = text;

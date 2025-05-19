@@ -96,12 +96,21 @@ class Endboss extends MovableObject {
     }, 1000 / 60);
   }
 
+  /**
+   * Calculates the horizontal distance between Endboss and character center.
+   * Used for AI movement logic.
+   * @returns {number} The horizontal distance (positive = character is right).
+   */
   getDistanceToCharacter() {
     const bossCenter = this.x + this.width / 2;
     const charCenter = this.world.character.x + this.world.character.width / 2;
     return charCenter - bossCenter;
   }
 
+  /**
+   * Checks whether the Endboss is currently visible in the camera viewport.
+   * @returns {boolean} True if boss is visible on screen.
+   */
   isBossVisible() {
     return (
       this.x + this.width > -this.world.camera_x &&
@@ -109,6 +118,13 @@ class Endboss extends MovableObject {
     );
   }
 
+  /**
+   * Handles movement behavior such as chasing and jumping.
+   * Called each frame if Endboss is visible.
+   * @param {number} distX - Horizontal distance to character.
+   * @param {boolean} bossIsVisible - Whether the boss is in the viewport.
+   * @returns {void}
+   */
   handleBossBehavior(distX, bossIsVisible) {
     if (Math.abs(distX) >= this.chaseRange || !bossIsVisible) return;
 
@@ -123,6 +139,10 @@ class Endboss extends MovableObject {
     }
   }
 
+  /**
+   * Triggers the alert animation once, then transitions into movement readiness.
+   * @returns {void}
+   */
   startAlertIfNeeded() {
     if (this.alertStarted) return;
 
@@ -135,6 +155,11 @@ class Endboss extends MovableObject {
     }, 1500);
   }
 
+  /**
+   * Moves the Endboss toward the character based on relative position.
+   * @param {number} distX - Horizontal distance to character.
+   * @returns {void}
+   */
   moveTowardCharacter(distX) {
     if (distX > 0) {
       this.otherDirection = true;
@@ -163,6 +188,10 @@ class Endboss extends MovableObject {
     }, 120);
   }
 
+  /**
+   * Internal logic for death animation and cleanup.
+   * @returns {boolean} True if death handling occurred.
+   */
   handleDeath() {
     if (!this.isDead()) return false;
 
@@ -172,10 +201,13 @@ class Endboss extends MovableObject {
       clearInterval(this.animationIntervalID);
       this.playDeadSequence();
     }
-
     return true;
   }
 
+  /**
+   * Determines the correct animation based on distance and boss state.
+   * @returns {string[]} The current image set to be animated.
+   */
   determineAnimation() {
     if (this.isHurt()) return this.IMAGES_HURT;
     if (!this.alertTimePassed) return this.IMAGES_ALERT;
@@ -183,7 +215,6 @@ class Endboss extends MovableObject {
     const distX = this.getDistanceToCharacter();
     if (Math.abs(distX) < this.minDistance) return this.IMAGES_ATTACK;
     if (Math.abs(distX) < this.chaseRange) return this.IMAGES_WALK;
-
     return this.IMAGES_ALERT;
   }
 

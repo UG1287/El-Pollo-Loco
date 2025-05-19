@@ -79,51 +79,80 @@ class SoundManager {
    * @returns {Promise<void>}
    */
   async playSound(name) {
-  if (!this.shouldPlaySound(name)) return;
-  if (this.isHitSoundTooSoon(name)) return;
+    if (!this.shouldPlaySound(name)) return;
+    if (this.isHitSoundTooSoon(name)) return;
 
-  const sound = this.sounds[name];
-  try {
-    await this.routeSoundPlayback(name, sound);
-  } catch (e) {
-    console.warn(`Sound "${name}" could not be played:`, e);
+    const sound = this.sounds[name];
+    try {
+      await this.routeSoundPlayback(name, sound);
+    } catch (e) {
+      console.warn(`Sound "${name}" could not be played:`, e);
+    }
   }
-}
 
-shouldPlaySound(name) {
-  return !(this.muted || !this.sounds[name] || (this.gameOver && name !== 'lose'));
-}
-
-isHitSoundTooSoon(name) {
-  if (name !== 'hit') return false;
-
-  const now = Date.now();
-  if (now - this.lastHitSoundTime < 400) return true;
-
-  this.lastHitSoundTime = now;
-  return false;
-}
-
-async routeSoundPlayback(name, sound) {
-  if (name === 'background' || name === 'lose') {
-    await this.playLoopedSound(sound);
-  } else {
-    await this.playClonedSound(sound);
+  /**
+   * Determines if a sound should be played based on mute and game state.
+   * @param {string} name
+   * @returns {boolean}
+   */
+  shouldPlaySound(name) {
+    return !(
+      this.muted ||
+      !this.sounds[name] ||
+      (this.gameOver && name !== 'lose')
+    );
   }
-}
 
-async playLoopedSound(sound) {
-  if (sound.paused && this.userInteracted) {
-    await sound.play();
+  /**
+   * Prevents repeated hit sounds within a short interval.
+   * @param {string} name
+   * @returns {boolean}
+   */
+  isHitSoundTooSoon(name) {
+    if (name !== 'hit') return false;
+
+    const now = Date.now();
+    if (now - this.lastHitSoundTime < 400) return true;
+
+    this.lastHitSoundTime = now;
+    return false;
   }
-}
 
-async playClonedSound(sound) {
-  const clone = sound.cloneNode(true);
-  clone.volume = this.muted ? 0 : 0.7;
-  await clone.play();
-}
+  /**
+   * Routes the playback method depending on sound type.
+   * @param {string} name
+   * @param {HTMLAudioElement} sound
+   * @returns {Promise<void>}
+   */
+  async routeSoundPlayback(name, sound) {
+    if (name === 'background' || name === 'lose') {
+      await this.playLoopedSound(sound);
+    } else {
+      await this.playClonedSound(sound);
+    }
+  }
 
+  /**
+   * Plays a looped sound (e.g., background music).
+   * @param {HTMLAudioElement} sound
+   * @returns {Promise<void>}
+   */
+  async playLoopedSound(sound) {
+    if (sound.paused && this.userInteracted) {
+      await sound.play();
+    }
+  }
+
+  /**
+   * Plays a cloned copy of a sound for overlapping playback.
+   * @param {HTMLAudioElement} sound
+   * @returns {Promise<void>}
+   */
+  async playClonedSound(sound) {
+    const clone = sound.cloneNode(true);
+    clone.volume = this.muted ? 0 : 0.7;
+    await clone.play();
+  }
 
   /**
    * Plays the background music if not muted and after user interaction.
@@ -154,6 +183,10 @@ async playClonedSound(sound) {
     this.toggleBackgroundMusic();
   }
 
+  /**
+   * Updates the volume for all loaded sounds based on mute state.
+   * @returns {void}
+   */
   updateAllVolumes() {
     for (const audio of Object.values(this.sounds)) {
       if (audio instanceof HTMLAudioElement) {
@@ -162,6 +195,10 @@ async playClonedSound(sound) {
     }
   }
 
+  /**
+   * Updates the mute icon on the mute button in the UI.
+   * @returns {void}
+   */
   updateMuteButtonUI() {
     const muteBtn = document.getElementById('btnMute');
     if (muteBtn) {
@@ -170,6 +207,10 @@ async playClonedSound(sound) {
     this.updateMuteIcon();
   }
 
+  /**
+   * Starts or stops background music depending on mute and interaction state.
+   * @returns {void}
+   */
   toggleBackgroundMusic() {
     const bg = this.sounds['background'];
     if (!bg) return;

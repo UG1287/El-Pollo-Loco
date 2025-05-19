@@ -7,9 +7,6 @@ class World {
   ctx;
   keyboard;
   camera_x = 0;
-  statusBar = new StatusBar();
-  coinStatusBar = new CoinStatusBar();
-  bottleStatusBar = new BottleStatusBar();
   throwableObjects = [];
   coinsCollected = 0;
   totalCoins;
@@ -40,6 +37,9 @@ class World {
     this.character.setWorld(this);
     this.draw();
     this.run();
+    this.statusBar = new StatusBarGeneric('health', 20, 0, 100);
+    this.coinStatusBar = new StatusBarGeneric('coin', 220, 0);
+    this.bottleStatusBar = new StatusBarGeneric('bottle', 400, 0);
   }
 
   /**
@@ -151,7 +151,7 @@ class World {
   }
 
   updateBottleStatusBar() {
-    this.bottleStatusBar.setBottles(
+    this.bottleStatusBar.setValue(
       this.character.bottleCount,
       this.totalBottles
     );
@@ -288,6 +288,10 @@ class World {
     this.setupGameOverKeyListener();
   }
 
+  /**
+   * Prepares the game over state by stopping the loop and playing the lose sound.
+   * @returns {void}
+   */
   prepareGameOverState() {
     this.gameOver = true;
     this.soundManager.gameOver = true;
@@ -299,12 +303,21 @@ class World {
     }, 200);
   }
 
+  /**
+   * Loads the game over image and draws it on the canvas once loaded.
+   * @returns {void}
+   */
   loadGameOverImage() {
     const img = new Image();
     img.src = 'img/9_intro_outro_screens/game_over/OhNo.png';
     img.onload = () => this.drawGameOverScreen(img);
   }
 
+  /**
+   * Draws the game over screen and overlay, and shows retry options.
+   * @param {HTMLImageElement} img - The game over image to draw.
+   * @returns {void}
+   */
   drawGameOverScreen(img) {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.ctx.fillStyle = 'rgba(0,0,0,.6)';
@@ -315,6 +328,10 @@ class World {
     this.toggleRestartButton();
   }
 
+  /**
+   * Draws the retry hint text for desktop users.
+   * @returns {void}
+   */
   drawRetryHint() {
     if (!isTouchDevice()) {
       this.ctx.fillStyle = 'white';
@@ -328,6 +345,10 @@ class World {
     }
   }
 
+  /**
+   * Toggles the restart button visibility and behavior depending on device type.
+   * @returns {void}
+   */
   toggleRestartButton() {
     const btn = document.getElementById('restartButton');
     if (!btn) return;
@@ -351,7 +372,7 @@ class World {
       this.level.coins.splice(i, 1);
       this.coinsCollected++;
       this.soundManager.playSound('coin');
-      this.coinStatusBar.setCoins(this.coinsCollected, this.totalCoins);
+      this.coinStatusBar.setValue(this.coinsCollected, this.totalCoins);
     });
   }
 
@@ -377,7 +398,7 @@ class World {
       bottle.stop();
       this.level.bottles.splice(i, 1);
       this.character.collectBottle();
-      this.bottleStatusBar.setBottles(
+      this.bottleStatusBar.setValue(
         this.character.bottleCount,
         this.totalBottles
       );
@@ -403,6 +424,10 @@ class World {
     this.cleanupOffscreenBottles();
   }
 
+  /**
+   * Updates the horizontal camera offset based on character position or boss area.
+   * @returns {void}
+   */
   updateCameraPosition() {
     if (this.lockCamera) {
       const bossAreaCenter = 2500;
@@ -412,6 +437,10 @@ class World {
     }
   }
 
+  /**
+   * Draws all dynamic game elements inside the camera view.
+   * @returns {void}
+   */
   drawMapContent() {
     this.addObjectsToMap(this.level.backgroundObjects);
     if (this.lockCamera) this.drawBossWalls(this.ctx);
@@ -424,12 +453,20 @@ class World {
     this.addObjectsToMap(this.level.bottles);
   }
 
+  /**
+   * Draws the fixed-position HUD elements (e.g., status bars).
+   * @returns {void}
+   */
   drawHUD() {
     this.addToMap(this.statusBar);
     this.addToMap(this.coinStatusBar);
     this.addToMap(this.bottleStatusBar);
   }
 
+  /**
+   * Restricts character movement within boss fight area bounds.
+   * @returns {void}
+   */
   restrictCharacterInBossArea() {
     if (!this.lockCamera) return;
     const leftLimit = 2150;
@@ -438,12 +475,21 @@ class World {
     if (this.character.x > rightLimit) this.character.x = rightLimit;
   }
 
+  /**
+   * Removes bottles that have fallen off-screen.
+   * @returns {void}
+   */
   cleanupOffscreenBottles() {
     this.throwableObjects = this.throwableObjects.filter(
       (obj) => obj.y <= this.canvas.height
     );
   }
 
+  /**
+   * Draws the boss walls at the left and right boundaries of the arena.
+   * @param {CanvasRenderingContext2D} ctx - The canvas context to draw on.
+   * @returns {void}
+   */
   drawBossWalls(ctx) {
     ctx.fillStyle = 'rgba(60, 60, 60, 0.7)';
     ctx.fillRect(4000, 0, 20, this.canvas.height);
@@ -452,6 +498,12 @@ class World {
     this.drawBossSpikes(ctx, 5300);
   }
 
+  /**
+   * Draws spikes above a vertical wall section, used for boss fight barriers.
+   * @param {CanvasRenderingContext2D} ctx - The canvas context.
+   * @param {number} xStart - The starting x-position of the spike row.
+   * @returns {void}
+   */
   drawBossSpikes(ctx, xStart) {
     const spikeCount = 10;
     for (let i = 0; i < spikeCount; i++) {
@@ -487,15 +539,16 @@ class World {
   }
 
   /**
-   * Adds a single object to the map and handles direction flipping.
-   * @param {MovableObject} obj - The object to add.
+   * Adds a single object to the map and handles direction flipping if applicable.
+   * @param {DrawableObject} obj - The object to add (e.g., character, enemy, status bar).
    * @returns {void}
    */
   addToMap(obj) {
-    if (obj.otherDirection) this.flipImage(obj);
+    if (!obj || typeof obj.draw !== 'function') return;
+    const flip = obj.otherDirection;
+    if (flip) this.flipImage(obj);
     obj.draw(this.ctx);
-    //obj.drawFrame(this.ctx);
-    if (obj.otherDirection) this.flipImageBack(obj);
+    if (flip) this.flipImageBack(obj);
   }
 
   /**
