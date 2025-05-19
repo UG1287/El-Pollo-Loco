@@ -16,8 +16,16 @@ class ThrowableObject extends MovableObject {
     this.height = 60;
     this.width = 60;
     this.throwDirection = direction;
-    this.GROUND_LEVEL = 360;
+    this.isThrowable = true;
+    this.GROUND_LEVEL = -Infinity;
     this.throw();
+  }
+
+  applyGravity() {
+    this.gravityInterval = setInterval(() => {
+      this.y -= this.speedY;
+      this.speedY -= this.acceleration;
+    }, 1000 / 30);
   }
 
   /**
@@ -27,11 +35,9 @@ class ThrowableObject extends MovableObject {
   throw() {
     this.speedY = 20;
     this.applyGravity();
-
     let interval = setInterval(() => {
       this.x += this.throwDirection * 10;
     }, 25);
-
     setTimeout(() => clearInterval(interval), 2000);
   }
 }

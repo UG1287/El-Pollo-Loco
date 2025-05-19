@@ -79,32 +79,51 @@ class SoundManager {
    * @returns {Promise<void>}
    */
   async playSound(name) {
-    if (this.muted || !this.sounds[name]) return;
-    if (this.gameOver && name !== 'lose') return;
+  if (!this.shouldPlaySound(name)) return;
+  if (this.isHitSoundTooSoon(name)) return;
 
-    const now = Date.now();
-
-    if (name === 'hit') {
-      if (now - this.lastHitSoundTime < 400) return;
-      this.lastHitSoundTime = now;
-    }
-
-    const sound = this.sounds[name];
-
-    try {
-      if (name === 'background' || name === 'lose') {
-        if (sound.paused && this.userInteracted) {
-          await sound.play();
-        }
-      } else {
-        const clone = sound.cloneNode(true);
-        clone.volume = this.muted ? 0 : 0.7;
-        await clone.play();
-      }
-    } catch (e) {
-      console.warn(`Sound "${name}" could not be played:`, e);
-    }
+  const sound = this.sounds[name];
+  try {
+    await this.routeSoundPlayback(name, sound);
+  } catch (e) {
+    console.warn(`Sound "${name}" could not be played:`, e);
   }
+}
+
+shouldPlaySound(name) {
+  return !(this.muted || !this.sounds[name] || (this.gameOver && name !== 'lose'));
+}
+
+isHitSoundTooSoon(name) {
+  if (name !== 'hit') return false;
+
+  const now = Date.now();
+  if (now - this.lastHitSoundTime < 400) return true;
+
+  this.lastHitSoundTime = now;
+  return false;
+}
+
+async routeSoundPlayback(name, sound) {
+  if (name === 'background' || name === 'lose') {
+    await this.playLoopedSound(sound);
+  } else {
+    await this.playClonedSound(sound);
+  }
+}
+
+async playLoopedSound(sound) {
+  if (sound.paused && this.userInteracted) {
+    await sound.play();
+  }
+}
+
+async playClonedSound(sound) {
+  const clone = sound.cloneNode(true);
+  clone.volume = this.muted ? 0 : 0.7;
+  await clone.play();
+}
+
 
   /**
    * Plays the background music if not muted and after user interaction.
@@ -130,26 +149,35 @@ class SoundManager {
   toggleMute() {
     this.muted = !this.muted;
     this.saveMuteState();
+    this.updateAllVolumes();
+    this.updateMuteButtonUI();
+    this.toggleBackgroundMusic();
+  }
 
+  updateAllVolumes() {
     for (const audio of Object.values(this.sounds)) {
       if (audio instanceof HTMLAudioElement) {
         audio.volume = this.muted ? 0 : 0.7;
       }
     }
+  }
 
+  updateMuteButtonUI() {
     const muteBtn = document.getElementById('btnMute');
     if (muteBtn) {
       muteBtn.innerText = this.muted ? '🔇' : '🔈';
     }
     this.updateMuteIcon();
+  }
 
+  toggleBackgroundMusic() {
     const bg = this.sounds['background'];
-    if (bg) {
-      if (this.muted) {
-        bg.pause();
-      } else if (this.userInteracted) {
-        this.playBackgroundMusic();
-      }
+    if (!bg) return;
+
+    if (this.muted) {
+      bg.pause();
+    } else if (this.userInteracted) {
+      this.playBackgroundMusic();
     }
   }
 
@@ -205,5 +233,4 @@ class SoundManager {
       if (btn) btn.innerText = this.muted ? '🔇' : '🔈';
     });
   }
-  
 }

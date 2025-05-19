@@ -25,27 +25,25 @@ class StartScreen {
    * @returns {void}
    */
   showStartScreen() {
-    this.startImage.onload = () => {
-      this.ctx.drawImage(
-        this.startImage,
-        0,
-        0,
-        this.canvas.width,
-        this.canvas.height
-      );
-      this.createButtons();
-    };
-
+    this.startImage.onload = () => this.drawStartScreenAndButtons();
     if (this.startImage.complete) {
-      this.ctx.drawImage(
-        this.startImage,
-        0,
-        0,
-        this.canvas.width,
-        this.canvas.height
-      );
-      this.createButtons();
+      this.drawStartScreenAndButtons();
     }
+  }
+
+  drawStartScreenAndButtons() {
+    this.drawStartImage();
+    this.createButtons();
+  }
+
+  drawStartImage() {
+    this.ctx.drawImage(
+      this.startImage,
+      0,
+      0,
+      this.canvas.width,
+      this.canvas.height
+    );
   }
 
   /**
@@ -53,32 +51,37 @@ class StartScreen {
    * @returns {void}
    */
   createButtons() {
+    let container = this.getOrCreateButtonContainer();
+    container.innerHTML = '';
+    container.appendChild(
+      this.createButton('Spiel starten', () => {
+        this.hideStartScreen();
+        this.startCallback();
+      })
+    );
+    container.appendChild(
+      this.createButton('Spielerklärung', () => {
+        window.location.href = 'gameinstructions.html';
+      })
+    );
+  }
+
+  getOrCreateButtonContainer() {
     let container = document.getElementById('startScreenButtons');
     if (!container) {
       container = document.createElement('div');
       container.id = 'startScreenButtons';
       document.body.appendChild(container);
     }
+    return container;
+  }
 
-    container.innerHTML = '';
-
-    let startButton = document.createElement('button');
-    startButton.textContent = 'Spiel starten';
-    startButton.className = 'explanationButton';
-    startButton.addEventListener('click', () => {
-      this.hideStartScreen();
-      this.startCallback();
-    });
-
-    let explanationButton = document.createElement('button');
-    explanationButton.textContent = 'Spielerklärung';
-    explanationButton.className = 'explanationButton';
-    explanationButton.addEventListener('click', () => {
-      window.location.href = 'gameinstructions.html';
-    });
-
-    container.appendChild(startButton);
-    container.appendChild(explanationButton);
+  createButton(text, onClick) {
+    let btn = document.createElement('button');
+    btn.textContent = text;
+    btn.className = 'explanationButton';
+    btn.addEventListener('click', onClick);
+    return btn;
   }
 
   /**

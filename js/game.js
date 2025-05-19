@@ -23,13 +23,17 @@ function init() {
   setupSoundUnlockOnClick();
 }
 
+/**
+ * Ensures sound playback is only triggered after user interaction.
+ * Used to comply with browser autoplay policies.
+ * @returns {void}
+ */
 function setupSoundUnlockOnClick() {
   window.addEventListener(
     'click',
     () => {
       if (soundManager && !soundManager.userInteracted && !gameStarted) {
         soundManager.userInteracted = true;
-        console.log('User unlocked audio for the first time');
       }
     },
     { once: true }
@@ -44,7 +48,6 @@ function setupSoundUnlockOnClick() {
 function handleOrientation() {
   let overlay = document.getElementById('orientationOverlay');
   if (!overlay) return;
-
   if (isTouchDevice()) {
     let isPortrait = window.matchMedia('(orientation:portrait)').matches;
     overlay.style.display = isPortrait ? 'flex' : 'none';
@@ -54,7 +57,7 @@ function handleOrientation() {
 }
 
 /**
- * Ermittelt zuverlässig, ob das Gerät echte Touch-Unterstützung hat.
+ * Checks if the device has real touch support.
  * @returns {boolean}
  */
 function hasRealTouch() {
@@ -91,68 +94,94 @@ function startGame() {
 
   gameStarted = true;
   clearCanvas();
-
   world = new World(canvas, keyboard, soundManager, createLevel1());
 
-  if (isTouchDevice()) {
-    document.getElementById('touchControls').style.display = 'block';
-    document.getElementById('mobileImpressumLink').style.display = 'none';
-  } else {
-    document.getElementById('mobileImpressumLink').style.display = 'none';
-  }
+  handleResponsiveUI();
+  handleBackgroundMusic();
+  setupTouchControls();
+}
 
+/**
+ * Updates UI for mobile/desktop layout.
+ * @returns {void}
+ */
+function handleResponsiveUI() {
+  const controls = document.getElementById('touchControls');
+  const impressum = document.getElementById('mobileImpressumLink');
+
+  if (isTouchDevice()) {
+    controls.style.display = 'block';
+  }
+  impressum.style.display = 'none';
+}
+
+/**
+ * Plays background music if allowed.
+ * @returns {void}
+ */
+function handleBackgroundMusic() {
   if (!soundManager.userInteracted) {
     soundManager.userInteracted = true;
     soundManager.playBackgroundMusic();
   } else if (!soundManager.muted) {
     setTimeout(() => soundManager.playBackgroundMusic(), 500);
   }
-
-  setupTouchControls();
 }
 
 /**
- * Stops any running world and spawns a fresh one.
- * Triggered by restart button or ENTER key.
+ * Resets game and starts a new world.
  * @returns {void}
  */
 function resetGame() {
-  if (world) {
-    world.gameOver = true;
-    world.character.stop();
-    world.level.enemies.forEach(
-      (e) => typeof e.stop === 'function' && e.stop()
-    );
-    clearInterval(world.collisionIntervalID);
-    clearInterval(world.runIntervalID);
-  }
+  stopCurrentWorld();
+  resetUI();
+  restartWorld();
 
+  if (!soundManager.muted && soundManager.userInteracted) {
+    setTimeout(() => soundManager.playBackgroundMusic(), 300);
+  }
+}
+
+/**
+ * Stops all game processes and clears world.
+ * @returns {void}
+ */
+function stopCurrentWorld() {
+  if (!world) return;
+
+  world.gameOver = true;
+  world.character.stop();
+  world.level.enemies.forEach((e) => typeof e.stop === 'function' && e.stop());
+  clearInterval(world.collisionIntervalID);
+  clearInterval(world.runIntervalID);
   soundManager.reset();
   clearCanvas();
+}
 
-  let restartBtn = document.getElementById('restartButton');
-  let touchControls = document.getElementById('touchControls');
-  let mobileImpressum = document.getElementById('mobileImpressumLink');
+/**
+ * Resets basic UI visibility states.
+ * @returns {void}
+ */
+function resetUI() {
+  const restartBtn = document.getElementById('restartButton');
+  const touchControls = document.getElementById('touchControls');
+  const mobileImpressum = document.getElementById('mobileImpressumLink');
 
   if (restartBtn) restartBtn.style.display = 'none';
 
-  if (isTouchDevice()) {
-    touchControls.style.display = 'block';
-    mobileImpressum.style.display = 'block';
-  } else {
-    touchControls.style.display = 'none';
-    mobileImpressum.style.display = 'none';
-  }
+  const show = isTouchDevice();
+  touchControls.style.display = show ? 'block' : 'none';
+  mobileImpressum.style.display = show ? 'block' : 'none';
+}
 
+/**
+ * Creates a new world instance and sets up controls.
+ * @returns {void}
+ */
+function restartWorld() {
   world = new World(canvas, keyboard, soundManager, createLevel1());
   gameStarted = true;
   setupTouchControls();
-
-  if (!soundManager.muted && soundManager.userInteracted) {
-    setTimeout(() => {
-      soundManager.playBackgroundMusic();
-    }, 300);
-  }
 }
 
 window.resetGame = resetGame;
@@ -178,28 +207,40 @@ function toggleFullscreen() {
   }
 }
 
+/**
+ * Sets up mute button click and touch event listeners.
+ * @returns {void}
+ */
 function setupMuteButton() {
   const mobileBtn = document.getElementById('btnMuteMobile');
   const desktopBtn = document.getElementById('btnMuteDesktop');
-
   const handleToggle = (e) => {
     e.preventDefault();
     soundManager.toggleMute();
   };
 
-  if (mobileBtn) {
-    mobileBtn.addEventListener('click', handleToggle);
-    mobileBtn.addEventListener('touchstart', handleToggle);
-  }
-
-  if (desktopBtn) {
-    desktopBtn.addEventListener('click', handleToggle);
-    desktopBtn.addEventListener('touchstart', handleToggle);
-  }
+  registerMuteEvents(mobileBtn, handleToggle);
+  registerMuteEvents(desktopBtn, handleToggle);
 
   soundManager.updateMuteIcon();
 }
 
+/**
+ * Registers click and touch handlers on a button.
+ * @param {HTMLElement|null} btn
+ * @param {Function} handler
+ * @returns {void}
+ */
+function registerMuteEvents(btn, handler) {
+  if (!btn) return;
+  btn.addEventListener('click', handler);
+  btn.addEventListener('touchstart', handler);
+}
+
+/**
+ * Sets up return to start screen buttons.
+ * @returns {void}
+ */
 function setupHomeButton() {
   const btnHomeDesktop = document.getElementById('btnHomeDesktop');
   const btnHomeMobile = document.getElementById('btnHomeMobile');
@@ -213,34 +254,46 @@ function setupHomeButton() {
   if (btnHomeMobile) btnHomeMobile.onclick = handleHome;
 }
 
+/**
+ * Shows the game start screen again.
+ * @returns {void}
+ */
 function returnToStartScreen() {
+  stopWorldAndSound();
+  resetUIToStartState();
+  startScreen = new StartScreen(canvas, startGame, keyboard);
+  setupSoundUnlockOnClick();
+}
+
+/**
+ * Stops all world activity and sound.
+ * Used when returning to start screen.
+ * @returns {void}
+ */
+function stopWorldAndSound() {
   if (world) {
     world.stopAll();
     world = null;
   }
-
-  // Stoppe Sound komplett (Hintergrund + Effekte)
   if (soundManager) {
     soundManager.stopAllSounds();
-    soundManager.userInteracted = false; // damit Musik nicht automatisch läuft
+    soundManager.userInteracted = false;
   }
+  gameStarted = false;
+}
 
-  gameStarted = false; // ermöglicht korrektes Restart-Verhalten
-
-  // Startscreen anzeigen
-  startScreen = new StartScreen(canvas, startGame, keyboard);
-
-  // Restart-Button & Touch-Controls ausblenden
-  let restartBtn = document.getElementById('restartButton');
+/**
+ * Resets all UI elements when returning to start screen.
+ * @returns {void}
+ */
+function resetUIToStartState() {
+  const restartBtn = document.getElementById('restartButton');
   if (restartBtn) {
     restartBtn.style.display = 'none';
     restartBtn.onclick = null;
   }
-
   document.getElementById('touchControls').style.display = 'none';
   document.getElementById('mobileImpressumLink').style.display = 'block';
-
-  setupSoundUnlockOnClick();
 }
 
 /**
@@ -252,58 +305,74 @@ function isTouchDevice() {
 }
 
 /**
- * Binds touch buttons to keyboard flags or direct actions.
+ * Binds touch controls to keyboard input flags.
  * @returns {void}
  */
 function setupTouchControls() {
-  let touchControls = document.getElementById('touchControls');
+  const touchControls = document.getElementById('touchControls');
+  touchControls.style.display = hasRealTouch() ? 'block' : 'none';
 
-  if (hasRealTouch()) {
-    touchControls.style.display = 'block';
-  } else {
-    touchControls.style.display = 'none';
-  }
+  const btnLeft = document.getElementById('btnLeft');
+  const btnRight = document.getElementById('btnRight');
+  const btnJump = document.getElementById('btnJump');
+  const btnThrow = document.getElementById('btnThrow');
 
-  let btnLeft = document.getElementById('btnLeft');
-  let btnRight = document.getElementById('btnRight');
-  let btnJump = document.getElementById('btnJump');
-  let btnThrow = document.getElementById('btnThrow');
-  let btnMute = document.getElementById('btnMute');
+  setupDirectionalTouch(btnLeft, btnRight);
+  setupJumpAndThrow(btnJump, btnThrow);
+}
 
-  if (btnLeft && btnRight && btnJump && btnThrow) {
-    btnLeft.ontouchstart = (e) => {
-      e.preventDefault();
-      keyboard.LEFT = true;
-    };
-    btnLeft.ontouchend = (e) => {
-      e.preventDefault();
-      keyboard.LEFT = false;
-    };
-    btnRight.ontouchstart = (e) => {
-      e.preventDefault();
-      keyboard.RIGHT = true;
-    };
-    btnRight.ontouchend = (e) => {
-      e.preventDefault();
-      keyboard.RIGHT = false;
-    };
-    btnJump.ontouchstart = (e) => {
-      e.preventDefault();
-      keyboard.SPACE = true;
-    };
-    btnJump.ontouchend = (e) => {
-      e.preventDefault();
-      keyboard.SPACE = false;
-    };
-    btnThrow.ontouchstart = (e) => {
-      e.preventDefault();
-      if (world) world.tryThrowBottle();
-    };
-    btnThrow.ontouchend = (e) => {
-      e.preventDefault();
-      keyboard.D = false;
-    };
-  }
+/**
+ * Sets up touch input for directional movement.
+ * @param {HTMLElement|null} btnLeft
+ * @param {HTMLElement|null} btnRight
+ * @returns {void}
+ */
+function setupDirectionalTouch(btnLeft, btnRight) {
+  if (!btnLeft || !btnRight) return;
+
+  btnLeft.ontouchstart = (e) => {
+    e.preventDefault();
+    keyboard.LEFT = true;
+  };
+  btnLeft.ontouchend = (e) => {
+    e.preventDefault();
+    keyboard.LEFT = false;
+  };
+  btnRight.ontouchstart = (e) => {
+    e.preventDefault();
+    keyboard.RIGHT = true;
+  };
+  btnRight.ontouchend = (e) => {
+    e.preventDefault();
+    keyboard.RIGHT = false;
+  };
+}
+
+/**
+ * Sets up touch input for jumping and throwing.
+ * @param {HTMLElement|null} btnJump
+ * @param {HTMLElement|null} btnThrow
+ * @returns {void}
+ */
+function setupJumpAndThrow(btnJump, btnThrow) {
+  if (!btnJump || !btnThrow) return;
+
+  btnJump.ontouchstart = (e) => {
+    e.preventDefault();
+    keyboard.SPACE = true;
+  };
+  btnJump.ontouchend = (e) => {
+    e.preventDefault();
+    keyboard.SPACE = false;
+  };
+  btnThrow.ontouchstart = (e) => {
+    e.preventDefault();
+    if (world) world.tryThrowBottle();
+  };
+  btnThrow.ontouchend = (e) => {
+    e.preventDefault();
+    keyboard.D = false;
+  };
 }
 
 function openImpressum() {
@@ -311,88 +380,71 @@ function openImpressum() {
   const content = document.getElementById('impressumContent');
 
   fetch('impressum.html')
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error('Impressum konnte nicht geladen werden');
-      }
-      return response.text();
-    })
-    .then((html) => {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      const main = doc.querySelector('main');
-      content.innerHTML = main ? main.innerHTML : html;
-
-      overlay.style.display = 'block';
-    })
-    .catch((error) => {
-      content.innerHTML = 'Fehler beim Laden des Impressums.';
-      overlay.style.display = 'block';
-      console.error(error);
-    });
+    .then((res) => handleImpressumResponse(res))
+    .then((html) => showImpressumContent(html, content, overlay))
+    .catch((err) => showImpressumError(content, overlay, err));
 }
+
+function handleImpressumResponse(response) {
+  if (!response.ok) {
+    throw new Error('Impressum konnte nicht geladen werden');
+  }
+  return response.text();
+}
+
+function showImpressumContent(html, content, overlay) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const main = doc.querySelector('main');
+  content.innerHTML = main ? main.innerHTML : html;
+  overlay.style.display = 'block';
+}
+
+function showImpressumError(content, overlay, error) {
+  content.innerHTML = 'Fehler beim Laden des Impressums.';
+  overlay.style.display = 'block';
+  console.error(error);
+}
+
 
 function closeImpressum() {
   const overlay = document.getElementById('impressumOverlay');
   overlay.style.display = 'none';
 }
 
-window.addEventListener('keydown', (e) => {
+window.addEventListener('keydown', handleKeyDown);
+window.addEventListener('keyup', handleKeyUp);
+
+const keyDownActions = {
+  ArrowRight: () => keyboard.RIGHT = true,
+  ArrowLeft: () => keyboard.LEFT = true,
+  ArrowUp: () => keyboard.UP = true,
+  ArrowDown: () => keyboard.DOWN = true,
+  Space: () => keyboard.SPACE = true,
+  KeyD: () => world?.tryThrowBottle(),
+  Enter: () => keyboard.ENTER = true,
+  KeyM: () => soundManager.toggleMute(),
+  KeyF: () => toggleFullscreen()
+};
+
+const keyUpActions = {
+  ArrowRight: () => keyboard.RIGHT = false,
+  ArrowLeft: () => keyboard.LEFT = false,
+  ArrowUp: () => keyboard.UP = false,
+  ArrowDown: () => keyboard.DOWN = false,
+  Space: () => keyboard.SPACE = false,
+  KeyD: () => keyboard.D = false,
+  Enter: () => keyboard.ENTER = false
+};
+
+function handleKeyDown(e) {
   if (!keyboard) return;
+  const action = keyDownActions[e.code];
+  if (action) action();
+}
 
-  switch (e.code) {
-    case 'ArrowRight':
-      keyboard.RIGHT = true;
-      break;
-    case 'ArrowLeft':
-      keyboard.LEFT = true;
-      break;
-    case 'ArrowUp':
-      keyboard.UP = true;
-      break;
-    case 'ArrowDown':
-      keyboard.DOWN = true;
-      break;
-    case 'Space':
-      keyboard.SPACE = true;
-      break;
-    case 'KeyD':
-      if (world) world.tryThrowBottle();
-      break;
-    case 'Enter':
-      keyboard.ENTER = true;
-      break;
-    case 'KeyM':
-      soundManager.toggleMute();
-      break;
-    case 'KeyF':
-      toggleFullscreen();
-      break;
-  }
-});
+function handleKeyUp(e) {
+  const action = keyUpActions[e.code];
+  if (action) action();
+}
 
-window.addEventListener('keyup', (e) => {
-  switch (e.code) {
-    case 'ArrowRight':
-      keyboard.RIGHT = false;
-      break;
-    case 'ArrowLeft':
-      keyboard.LEFT = false;
-      break;
-    case 'ArrowUp':
-      keyboard.UP = false;
-      break;
-    case 'ArrowDown':
-      keyboard.DOWN = false;
-      break;
-    case 'Space':
-      keyboard.SPACE = false;
-      break;
-    case 'KeyD':
-      keyboard.D = false;
-      break;
-    case 'Enter':
-      keyboard.ENTER = false;
-      break;
-  }
-});

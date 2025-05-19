@@ -14,7 +14,6 @@ class Endboss extends MovableObject {
   alertTimePassed = false;
   lastHitTime = 0;
 
-
   IMAGES_WALK = [
     'img/4_enemie_boss_chicken/1_walk/G1.png',
     'img/4_enemie_boss_chicken/1_walk/G2.png',
@@ -88,44 +87,62 @@ class Endboss extends MovableObject {
     this.movementIntervalID = setInterval(() => {
       if (!this.world || this.isDead()) return;
 
-      const bossCenter = this.x + this.width / 2;
-      const charCenter =
-        this.world.character.x + this.world.character.width / 2;
-      const distX = charCenter - bossCenter;
+      const distX = this.getDistanceToCharacter();
+      const bossIsVisible = this.isBossVisible();
 
-      const bossIsVisible =
-        this.x + this.width > -this.world.camera_x &&
-        this.x < -this.world.camera_x + this.world.canvas.width;
+      if (bossIsVisible) this.world.lockCamera = true;
 
-        if (bossIsVisible) {
-          this.world.lockCamera = true;
-        }
-
-      if (Math.abs(distX) < this.chaseRange && bossIsVisible) {
-        if (!this.alertStarted) {
-          this.alertStarted = true;
-          this.currentAnimationImages = this.IMAGES_ALERT;
-          this.currentImage = 0;
-
-          setTimeout(() => {
-            this.alertFinished = true;
-          }, 1500);
-        }
-
-        if (this.alertFinished && Math.abs(distX) > this.minDistance) {
-          if (distX > 0) {
-            this.otherDirection = true;
-            this.moveRight();
-          } else {
-            this.otherDirection = false;
-            this.moveLeft();
-          }
-        }
-        if (Math.random() < 0.01 && this.isAboveGround() === false) {
-          this.speedY = 25;
-        }
-      }
+      this.handleBossBehavior(distX, bossIsVisible);
     }, 1000 / 60);
+  }
+
+  getDistanceToCharacter() {
+    const bossCenter = this.x + this.width / 2;
+    const charCenter = this.world.character.x + this.world.character.width / 2;
+    return charCenter - bossCenter;
+  }
+
+  isBossVisible() {
+    return (
+      this.x + this.width > -this.world.camera_x &&
+      this.x < -this.world.camera_x + this.world.canvas.width
+    );
+  }
+
+  handleBossBehavior(distX, bossIsVisible) {
+    if (Math.abs(distX) >= this.chaseRange || !bossIsVisible) return;
+
+    this.startAlertIfNeeded();
+
+    if (this.alertFinished && Math.abs(distX) > this.minDistance) {
+      this.moveTowardCharacter(distX);
+    }
+
+    if (Math.random() < 0.01 && !this.isAboveGround()) {
+      this.speedY = 25;
+    }
+  }
+
+  startAlertIfNeeded() {
+    if (this.alertStarted) return;
+
+    this.alertStarted = true;
+    this.currentAnimationImages = this.IMAGES_ALERT;
+    this.currentImage = 0;
+
+    setTimeout(() => {
+      this.alertFinished = true;
+    }, 1500);
+  }
+
+  moveTowardCharacter(distX) {
+    if (distX > 0) {
+      this.otherDirection = true;
+      this.moveRight();
+    } else {
+      this.otherDirection = false;
+      this.moveLeft();
+    }
   }
 
   /**
@@ -134,42 +151,46 @@ class Endboss extends MovableObject {
    */
   startAnimation() {
     this.animationIntervalID = setInterval(() => {
-      if (this.isDead()) {
-        if (!this.deadPlayed) {
-          this.deadPlayed = true;
-          clearInterval(this.movementIntervalID);
-          clearInterval(this.animationIntervalID);
-          this.playDeadSequence();
-        }
-        return;
-      }
+      if (this.handleDeath()) return;
 
-      let newAnimation = this.IMAGES_ALERT;
-
-      if (this.isHurt()) {
-        newAnimation = this.IMAGES_HURT;
-      } else if (!this.alertTimePassed) {
-        newAnimation = this.IMAGES_ALERT;
-      } else {
-        const bossCenter = this.x + this.width / 2;
-        const charCenter =
-          this.world.character.x + this.world.character.width / 2;
-        const distX = charCenter - bossCenter;
-        if (Math.abs(distX) < this.minDistance) {
-          newAnimation = this.IMAGES_ATTACK;
-        } else if (Math.abs(distX) < this.chaseRange) {
-          newAnimation = this.IMAGES_WALK;
-        }
-      }
-
+      const newAnimation = this.determineAnimation();
       if (this.currentAnimationImages !== newAnimation && !this.isHurt()) {
         this.currentAnimationImages = newAnimation;
         this.currentImage = 0;
       }
-      
 
       this.playAnimation(this.currentAnimationImages);
     }, 120);
+  }
+
+  handleDeath() {
+    if (!this.isDead()) return false;
+
+    if (!this.deadPlayed) {
+      this.deadPlayed = true;
+      clearInterval(this.movementIntervalID);
+      clearInterval(this.animationIntervalID);
+      this.playDeadSequence();
+    }
+
+    return true;
+  }
+
+  determineAnimation() {
+    if (this.isHurt()) return this.IMAGES_HURT;
+    if (!this.alertTimePassed) return this.IMAGES_ALERT;
+
+    const distX = this.getDistanceToCharacter();
+    if (Math.abs(distX) < this.minDistance) return this.IMAGES_ATTACK;
+    if (Math.abs(distX) < this.chaseRange) return this.IMAGES_WALK;
+
+    return this.IMAGES_ALERT;
+  }
+
+  getDistanceToCharacter() {
+    const bossCenter = this.x + this.width / 2;
+    const charCenter = this.world.character.x + this.world.character.width / 2;
+    return charCenter - bossCenter;
   }
 
   /**
@@ -207,14 +228,13 @@ class Endboss extends MovableObject {
     if (now - this.lastHitTime < 1000) return; // 1 Sekunde Unverwundbarkeit
     this.lastHitTime = now;
     this.lastHit = now; // <- wichtig für isHurt()
-  
+
     this.energy -= 20;
     if (this.energy < 0) this.energy = 0;
-  
+
     this.currentAnimationImages = this.IMAGES_HURT;
     this.currentImage = 0;
   }
-  
 
   /**
    * Sets the world context for the Endboss.

@@ -51,7 +51,7 @@ class DrawableObject {
    * @param {CanvasRenderingContext2D} ctx - The drawing context of the canvas.
    * @returns {void}
    */
-  drawFrame(ctx) {
+  /*drawFrame(ctx) {
     ctx.beginPath();
     ctx.lineWidth = '3';
     
@@ -68,7 +68,7 @@ class DrawableObject {
     }
   
     ctx.stroke();
-  }
+  }*/
 
   /**
    * Plays an animation by cycling through an array of images.
@@ -77,7 +77,6 @@ class DrawableObject {
    */
   playAnimation(images) {
     if (!images || images.length === 0) return;
-
     let index = this.currentImage % images.length;
     let path = images[index];
     this.img = this.imageCache[path];

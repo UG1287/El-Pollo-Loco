@@ -127,54 +127,78 @@ class Character extends MovableObject {
    * @returns {void}
    */
   animate() {
-    this.movementIntervalID = setInterval(() => {
-      if (!this.world || this.world.gameOver) return;
-      const k = this.world.keyboard;
-      if (k.RIGHT && this.x < this.world.level.level_end_x) {
-        this.moveRight();
-        this.otherDirection = false;
-      }
-      if (k.LEFT && this.x > 0) {
-        this.moveLeft();
-        this.otherDirection = true;
-      }
-      if (k.SPACE && !this.isAboveGround()) this.jump();
-      this.world.camera_x = -this.x + 100;
-    }, 1000 / 60);
+  this.startMovementLoop();
+  this.startAnimationLoop();
+}
 
-    this.animationIntervalID = setInterval(() => {
-      if (!this.world || this.world.gameOver) return;
+startMovementLoop() {
+  this.movementIntervalID = setInterval(() => {
+    if (!this.world || this.world.gameOver) return;
+    this.handleMovementInput();
+    this.world.camera_x = -this.x + 100;
+  }, 1000 / 60);
+}
 
-      if (this.isDead()) {
-        if (!this.deadPlayed) {
-          this.deadPlayed = true;
-          clearInterval(this.movementIntervalID);
-          clearInterval(this.animationIntervalID);
-          this.playDeadSequence();
-        }
-        return;
-      }
+handleMovementInput() {
+  const k = this.world.keyboard;
 
-      if (this.isHurt()) {
-        this.playAnimation(this.IMAGES_HURT);
-        return;
-      }
-
-      if (this.isAboveGround()) {
-        this.playAnimation(this.IMAGES_JUMPING);
-        return;
-      }
-
-      const idleMs = Date.now() - this.lastAction;
-      if (idleMs > 5000) {
-        this.playAnimation(this.IMAGES_LONG_IDLE);
-      } else if (idleMs > 1000) {
-        this.playAnimation(this.IMAGES_IDLE);
-      } else if (this.world.keyboard.RIGHT || this.world.keyboard.LEFT) {
-        this.playAnimation(this.IMAGES_WALKING);
-      }
-    }, 100);
+  if (k.RIGHT && this.x < this.world.level.level_end_x) {
+    this.moveRight();
+    this.otherDirection = false;
   }
+  if (k.LEFT && this.x > 0) {
+    this.moveLeft();
+    this.otherDirection = true;
+  }
+  if (k.SPACE && !this.isAboveGround()) this.jump();
+}
+
+startAnimationLoop() {
+  this.animationIntervalID = setInterval(() => {
+    if (!this.world || this.world.gameOver) return;
+    if (this.handleDeathAnimation()) return;
+    if (this.handleStateAnimations()) return;
+    this.handleIdleAnimation();
+  }, 100);
+}
+
+handleDeathAnimation() {
+  if (!this.isDead()) return false;
+
+  if (!this.deadPlayed) {
+    this.deadPlayed = true;
+    clearInterval(this.movementIntervalID);
+    clearInterval(this.animationIntervalID);
+    this.playDeadSequence();
+  }
+  return true;
+}
+
+handleStateAnimations() {
+  if (this.isHurt()) {
+    this.playAnimation(this.IMAGES_HURT);
+    return true;
+  }
+  if (this.isAboveGround()) {
+    this.playAnimation(this.IMAGES_JUMPING);
+    return true;
+  }
+  return false;
+}
+
+handleIdleAnimation() {
+  const idleMs = Date.now() - this.lastAction;
+  const k = this.world.keyboard;
+
+  if (idleMs > 5000) {
+    this.playAnimation(this.IMAGES_LONG_IDLE);
+  } else if (idleMs > 1000) {
+    this.playAnimation(this.IMAGES_IDLE);
+  } else if (k.RIGHT || k.LEFT) {
+    this.playAnimation(this.IMAGES_WALKING);
+  }
+}
+
 
   /**
    * Plays the death animation sequence and shows the game over screen.
@@ -224,7 +248,6 @@ class Character extends MovableObject {
     const shrinkBottom = 10;
     const shrinkLeft = 30;
     const shrinkRight = 30;
-
     return (
       this.x + shrinkLeft + (this.width - shrinkLeft - shrinkRight) >= mo.x &&
       this.x + shrinkLeft <= mo.x + mo.width &&

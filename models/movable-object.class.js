@@ -18,28 +18,25 @@ class MovableObject extends DrawableObject {
    * @returns {void}
    */
   applyGravity() {
-  setInterval(() => {
-    if (this.isAboveGround() || this.speedY > 0) {
-      this.y -= this.speedY;
-      this.speedY -= this.acceleration;
-      if (this.y > this.GROUND_LEVEL) {
-        this.y = this.GROUND_LEVEL;
-        this.speedY = 0;
+    setInterval(() => {
+      if (this.isAboveGround() || this.speedY > 0) {
+        this.y -= this.speedY;
+        this.speedY -= this.acceleration;
+        if (!(this instanceof ThrowableObject) && this.y > this.GROUND_LEVEL) {
+          this.y = this.GROUND_LEVEL;
+          this.speedY = 0;
+        }
       }
-    }
-  }, 1000 / 30);
-}
-
+    }, 1000 / 30);
+  }
 
   /**
    * Checks if the object is currently above the ground.
    * @returns {boolean} True if above ground, false otherwise.
    */
   isAboveGround() {
-  return this.y < this.GROUND_LEVEL;
-}
-
-
+    return this.y < this.GROUND_LEVEL;
+  }
 
   /**
    * Checks collision with another movable object.
@@ -63,7 +60,6 @@ class MovableObject extends DrawableObject {
     if (this.world && this.world.soundManager) {
       this.world.soundManager.playSound('hit');
     }
-
     this.lastAction = Date.now();
     this.energy -= 5;
     if (this.energy < 0) this.energy = 0;
@@ -102,15 +98,12 @@ class MovableObject extends DrawableObject {
    */
   playAnimation(images) {
     if (!images || images.length === 0) return;
-
     if (this.currentAnimationImages !== images) {
       this.currentAnimationImages = images;
       this.animationFrameIndex = 0; // Reset to first image for new animation
     }
-
     const path = this.currentAnimationImages[this.animationFrameIndex];
     this.img = this.imageCache[path];
-
     this.animationFrameIndex++;
     if (this.animationFrameIndex >= this.currentAnimationImages.length) {
       this.animationFrameIndex = 0;
