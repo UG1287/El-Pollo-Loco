@@ -44,19 +44,6 @@ class SoundManager {
   }
 
   /**
- * Returns an absolute URL that never inherits any username:password part of
- * the current page address ( fixes “Request cannot be constructed from a URL
- * that includes credentials” when fetch / Audio() runs).
- * @param  {string} relPath e.g. "audio/background.mp3"
- * @returns {string}        absolute URL, same origin, no credentials
- * @static
- * @private
- */
-static makeUrl(relPath) {
-  return new URL(relPath, window.location.origin).href;
-}
-
-  /**
    * Saves the current mute state to local storage.
    * @returns {void}
    */
@@ -65,25 +52,41 @@ static makeUrl(relPath) {
   }
 
   /**
- * Loads all sounds defined in `audio/audioAssets.json`.
- * @returns {Promise<void>}
+ * Builds an absolute URL for resources like audio files.
+ * Works both locally (localhost or file://) and online (with or without subfolders).
+ * @param {string} relPath - Relative path to the resource (e.g. "audio/foo.mp3")
+ * @returns {string}
  */
-async loadSounds() {
-  try {
-    const response  = await fetch(SoundManager.makeUrl('audio/audioAssets.json'));
-    const audioData = await response.json();
-
-    for (const [key, relPath] of Object.entries(audioData)) {
-      const audio = new Audio(SoundManager.makeUrl(relPath));   // ⟵ patched
-      audio.volume = this.muted ? 0 : 0.7;
-      if (key === 'background') audio.loop = true;
-      this.sounds[key] = audio;
-    }
-    this.loaded = true;
-  } catch (err) {
-    console.error('Error loading audio files:', err);
-  }
+static makeUrl(relPath) {
+  const basePath = window.location.pathname.replace(/\/[^/]*$/, '/'); // strip file name
+  return `${window.location.origin}${basePath}${relPath}`;
 }
+
+
+
+
+  /**
+   * Loads all sounds defined in `audio/audioAssets.json`.
+   * @returns {Promise<void>}
+   */
+  async loadSounds() {
+    try {
+      const response = await fetch(
+        SoundManager.makeUrl('audio/audioAssets.json')
+      );
+      const audioData = await response.json();
+
+      for (const [key, relPath] of Object.entries(audioData)) {
+        const audio = new Audio(SoundManager.makeUrl(relPath)); // ⟵ patched
+        audio.volume = this.muted ? 0 : 0.7;
+        if (key === 'background') audio.loop = true;
+        this.sounds[key] = audio;
+      }
+      this.loaded = true;
+    } catch (err) {
+      console.error('Error loading audio files:', err);
+    }
+  }
 
   /**
    * Plays a specific sound by name, respecting mute and game over states.
