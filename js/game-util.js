@@ -1,3 +1,4 @@
+const NON_PASSIVE = { passive: false };
 /**
  * Ensures sound playback is only triggered after user interaction.
  * @returns {void}
@@ -59,7 +60,21 @@ function toggleFullscreen() {
 function registerMuteEvents(btn, handler) {
   if (!btn) return;
   btn.addEventListener('click', handler);
-  btn.addEventListener('touchstart', handler);
+  btn.addEventListener('touchstart', handler, NON_PASSIVE);
+}
+
+/**
+ * Adds both a `click` and a **non-passive** `touchstart` listener to an element,
+ * allowing the handler to call `e.preventDefault()` safely.
+ *
+ * @param {HTMLElement} el - The target element to which the listeners are attached.
+ * @param {(e: Event) => void} handler - Callback executed for both events.
+ * @returns {void}
+ */
+
+function addClickAndTouch(el, handler) {
+  el.addEventListener('click', handler);
+  el.addEventListener('touchstart', handler, NON_PASSIVE);
 }
 
 /**

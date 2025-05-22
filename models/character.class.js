@@ -128,78 +128,106 @@ class Character extends MovableObject {
    * @returns {void}
    */
   animate() {
-  this.startMovementLoop();
-  this.startAnimationLoop();
-}
-
-startMovementLoop() {
-  this.movementIntervalID = setInterval(() => {
-    if (!this.world || this.world.gameOver) return;
-    this.handleMovementInput();
-    this.world.camera_x = -this.x + 100;
-  }, 1000 / 60);
-}
-
-handleMovementInput() {
-  const k = this.world.keyboard;
-
-  if (k.RIGHT && this.x < this.world.level.level_end_x) {
-    this.moveRight();
-    this.otherDirection = false;
+    this.startMovementLoop();
+    this.startAnimationLoop();
   }
-  if (k.LEFT && this.x > 0) {
-    this.moveLeft();
-    this.otherDirection = true;
+
+  /**
+   * Starts the movement loop which handles keyboard input and updates the camera position.
+   * Runs approximately 60 times per second.
+   * @returns {void}
+   */
+  startMovementLoop() {
+    this.movementIntervalID = setInterval(() => {
+      if (!this.world || this.world.gameOver) return;
+      this.handleMovementInput();
+      this.world.camera_x = -this.x + 100;
+    }, 1000 / 60);
   }
-  if (k.SPACE && !this.isAboveGround()) this.jump();
-}
 
-startAnimationLoop() {
-  this.animationIntervalID = setInterval(() => {
-    if (!this.world || this.world.gameOver) return;
-    if (this.handleDeathAnimation()) return;
-    if (this.handleStateAnimations()) return;
-    this.handleIdleAnimation();
-  }, 100);
-}
+  /**
+   * Handles character movement based on keyboard input.
+   * Triggers left/right movement or jump, if conditions are met.
+   * @returns {void}
+   */
+  handleMovementInput() {
+    const k = this.world.keyboard;
 
-handleDeathAnimation() {
-  if (!this.isDead()) return false;
-
-  if (!this.deadPlayed) {
-    this.deadPlayed = true;
-    clearInterval(this.movementIntervalID);
-    clearInterval(this.animationIntervalID);
-    this.playDeadSequence();
+    if (k.RIGHT && this.x < this.world.level.level_end_x) {
+      this.moveRight();
+      this.otherDirection = false;
+    }
+    if (k.LEFT && this.x > 0) {
+      this.moveLeft();
+      this.otherDirection = true;
+    }
+    if (k.SPACE && !this.isAboveGround()) this.jump();
   }
-  return true;
-}
 
-handleStateAnimations() {
-  if (this.isHurt()) {
-    this.playAnimation(this.IMAGES_HURT);
+  /**
+   * Starts the animation loop which updates the character's animation state.
+   * Runs every 100ms (10 frames per second).
+   * @returns {void}
+   */
+  startAnimationLoop() {
+    this.animationIntervalID = setInterval(() => {
+      if (!this.world || this.world.gameOver) return;
+      if (this.handleDeathAnimation()) return;
+      if (this.handleStateAnimations()) return;
+      this.handleIdleAnimation();
+    }, 100);
+  }
+
+  /**
+   * Handles the death animation of the character.
+   * Stops all intervals and triggers dead animation only once.
+   * @returns {boolean} True if the character is dead and animation handled.
+   */
+  handleDeathAnimation() {
+    if (!this.isDead()) return false;
+
+    if (!this.deadPlayed) {
+      this.deadPlayed = true;
+      clearInterval(this.movementIntervalID);
+      clearInterval(this.animationIntervalID);
+      this.playDeadSequence();
+    }
     return true;
   }
-  if (this.isAboveGround()) {
-    this.playAnimation(this.IMAGES_JUMPING);
-    return true;
+
+  /**
+   * Plays state-dependent animations like hurt or jumping.
+   * @returns {boolean} True if an animation was triggered.
+   */
+  handleStateAnimations() {
+    if (this.isHurt()) {
+      this.playAnimation(this.IMAGES_HURT);
+      return true;
+    }
+    if (this.isAboveGround()) {
+      this.playAnimation(this.IMAGES_JUMPING);
+      return true;
+    }
+    return false;
   }
-  return false;
-}
 
-handleIdleAnimation() {
-  const idleMs = Date.now() - this.lastAction;
-  const k = this.world.keyboard;
+  /**
+   * Determines and plays the appropriate idle or walking animation
+   * based on the time since the last user action.
+   * @returns {void}
+   */
+  handleIdleAnimation() {
+    const idleMs = Date.now() - this.lastAction;
+    const k = this.world.keyboard;
 
-  if (idleMs > 5000) {
-    this.playAnimation(this.IMAGES_LONG_IDLE);
-  } else if (idleMs > 1000) {
-    this.playAnimation(this.IMAGES_IDLE);
-  } else if (k.RIGHT || k.LEFT) {
-    this.playAnimation(this.IMAGES_WALKING);
+    if (idleMs > 5000) {
+      this.playAnimation(this.IMAGES_LONG_IDLE);
+    } else if (idleMs > 1000) {
+      this.playAnimation(this.IMAGES_IDLE);
+    } else if (k.RIGHT || k.LEFT) {
+      this.playAnimation(this.IMAGES_WALKING);
+    }
   }
-}
-
 
   /**
    * Plays the death animation sequence and shows the game over screen.
@@ -238,6 +266,4 @@ handleIdleAnimation() {
       this.world.soundManager.playSound('jump');
     }
   }
-
-  
 }

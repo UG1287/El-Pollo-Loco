@@ -44,6 +44,19 @@ class SoundManager {
   }
 
   /**
+ * Returns an absolute URL that never inherits any username:password part of
+ * the current page address ( fixes “Request cannot be constructed from a URL
+ * that includes credentials” when fetch / Audio() runs).
+ * @param  {string} relPath e.g. "audio/background.mp3"
+ * @returns {string}        absolute URL, same origin, no credentials
+ * @static
+ * @private
+ */
+static makeUrl(relPath) {
+  return new URL(relPath, window.location.origin).href;
+}
+
+  /**
    * Saves the current mute state to local storage.
    * @returns {void}
    */
@@ -52,26 +65,25 @@ class SoundManager {
   }
 
   /**
-   * Loads all sounds defined in the external JSON file and stores them.
-   * @returns {Promise<void>}
-   */
-  async loadSounds() {
-    try {
-      const response = await fetch('audio/audioAssets.json');
-      const audioData = await response.json();
-      for (const [key, path] of Object.entries(audioData)) {
-        const audio = new Audio(path);
-        audio.volume = this.muted ? 0 : 0.7;
-        if (key === 'background') {
-          audio.loop = true;
-        }
-        this.sounds[key] = audio;
-      }
-      this.loaded = true;
-    } catch (error) {
-      console.error('Error loading audio files:', error);
+ * Loads all sounds defined in `audio/audioAssets.json`.
+ * @returns {Promise<void>}
+ */
+async loadSounds() {
+  try {
+    const response  = await fetch(SoundManager.makeUrl('audio/audioAssets.json'));
+    const audioData = await response.json();
+
+    for (const [key, relPath] of Object.entries(audioData)) {
+      const audio = new Audio(SoundManager.makeUrl(relPath));   // ⟵ patched
+      audio.volume = this.muted ? 0 : 0.7;
+      if (key === 'background') audio.loop = true;
+      this.sounds[key] = audio;
     }
+    this.loaded = true;
+  } catch (err) {
+    console.error('Error loading audio files:', err);
   }
+}
 
   /**
    * Plays a specific sound by name, respecting mute and game over states.
