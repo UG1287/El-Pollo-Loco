@@ -85,6 +85,7 @@ class Character extends MovableObject {
     this.loadImages(this.IMAGES_LONG_IDLE);
     this.loadImages(this.IMAGES_DEAD);
     this.y = this.GROUND_LEVEL;
+    this.hitbox = { top: 120, bottom: 10, left: 30, right: 30 };
     this.applyGravity();
   }
 
@@ -238,21 +239,5 @@ handleIdleAnimation() {
     }
   }
 
-  /**
-   * Checks collision with another movable object using a smaller hitbox.
-   * @param {MovableObject} mo - The other movable object.
-   * @returns {boolean} True if a collision is detected, false otherwise.
-   */
-  isColliding(mo) {
-    const shrinkTop = 150;
-    const shrinkBottom = 10;
-    const shrinkLeft = 30;
-    const shrinkRight = 30;
-    return (
-      this.x + shrinkLeft + (this.width - shrinkLeft - shrinkRight) >= mo.x &&
-      this.x + shrinkLeft <= mo.x + mo.width &&
-      this.y + shrinkTop + (this.height - shrinkTop - shrinkBottom) >= mo.y &&
-      this.y + shrinkTop <= mo.y + mo.height
-    );
-  }
+  
 }

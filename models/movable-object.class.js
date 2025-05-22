@@ -12,6 +12,7 @@ class MovableObject extends DrawableObject {
   currentAnimationImages = [];
   animationFrameIndex = 0;
   GROUND_LEVEL = 180;
+  hitbox = { top: 0, bottom: 0, left: 0, right: 0 };
 
   /**
    * Applies gravity to the object, pulling it downward over time.
@@ -44,11 +45,21 @@ class MovableObject extends DrawableObject {
    * @returns {boolean} True if a collision is detected, false otherwise.
    */
   isColliding(mo) {
+    const x1 = this.x + this.hitbox.left;
+    const y1 = this.y + this.hitbox.top;
+    const w1 = this.width - this.hitbox.left - this.hitbox.right;
+    const h1 = this.height - this.hitbox.top - this.hitbox.bottom;
+
+    const x2 = mo.x + (mo.hitbox?.left ?? 0);
+    const y2 = mo.y + (mo.hitbox?.top ?? 0);
+    const w2 = mo.width  - ((mo.hitbox?.left ?? 0) + (mo.hitbox?.right ?? 0));
+    const h2 = mo.height - ((mo.hitbox?.top  ?? 0) + (mo.hitbox?.bottom ?? 0));
+
     return (
-      this.x + this.width >= mo.x &&
-      this.x <= mo.x + mo.width &&
-      this.y + this.height >= mo.y &&
-      this.y <= mo.y + mo.height
+      x1 < x2 + w2 &&
+      x1 + w1 > x2 &&
+      y1 < y2 + h2 &&
+      y1 + h1 > y2
     );
   }
 

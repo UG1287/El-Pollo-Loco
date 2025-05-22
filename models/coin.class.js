@@ -20,6 +20,7 @@ class Coin extends MovableObject {
     this.x = x;
     this.y = y;
     this.baseY = y;
+    this.hitbox = { top: 20, bottom: 20, left: 20, right: 20 };
     this.animate();
   }
 
@@ -33,18 +34,5 @@ class Coin extends MovableObject {
     }, 1000 / 60);
   }
 
-  /**
-   * Checks collision with another movable object, using a reduced hitbox.
-   * @param {MovableObject} mo - The other movable object to check against.
-   * @returns {boolean} True if a collision is detected, false otherwise.
-   */
-  isColliding(mo) {
-    const shrink = 40;
-    return (
-      this.x + shrink + this.width - 2 * shrink >= mo.x &&
-      this.x + shrink <= mo.x + mo.width &&
-      this.y + shrink + this.height - 2 * shrink >= mo.y &&
-      this.y + shrink <= mo.y + mo.height
-    );
-  }
+  
 }

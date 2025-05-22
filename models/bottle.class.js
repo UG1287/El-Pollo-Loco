@@ -22,6 +22,8 @@ class Bottle extends MovableObject {
     this.loadImages(this.IMAGES_BOTTLE);
     this.x = x;
     this.y = y;
+    this.hitbox = { top: 10, bottom: 10, left: 20, right: 20 };
+
     this.animate();
   }
 
