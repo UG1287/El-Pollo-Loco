@@ -46,31 +46,6 @@ class DrawableObject {
   }
 
   /**
-   * (Optional) Draws a frame around the object for debugging purposes.
-   * Currently commented out.
-   * @param {CanvasRenderingContext2D} ctx - The drawing context of the canvas.
-   * @returns {void}
-   */
-  /*drawFrame(ctx) {
-    ctx.beginPath();
-    ctx.lineWidth = '3';
-    
-    if (this instanceof Character) {
-      const shrinkTop = 70;
-      const shrinkBottom = 20;
-      const reducedHeight = this.height - shrinkTop - shrinkBottom;
-  
-      ctx.strokeStyle = 'red';
-      ctx.rect(this.x, this.y + shrinkTop, this.width, reducedHeight);
-    } else {
-      ctx.strokeStyle = 'blue';
-      ctx.rect(this.x, this.y, this.width, this.height);
-    }
-  
-    ctx.stroke();
-  }*/
-
-  /**
    * Plays an animation by cycling through an array of images.
    * @param {string[]} images - Array of image file paths for the animation frames.
    * @returns {void}
