@@ -1,6 +1,9 @@
 @font-face {
   font-family: 'Zabars';
   src: url('font/ZABARS/zabars.ttf') format('truetype');
+  unicode-range: U+0041-005A, U+0061-007A, U+0030-0039, U+00C4, U+00D6, U+00DC,
+    U+00E4, U+00F6, U+00FC, U+00DF, U+0020-002F, U+003A-0040, U+005B-0060,
+    U+007B-007E;
 }
 
 body {
@@ -34,14 +37,6 @@ canvas {
   will-change: transform;
 }
 
-.impressum-container {
-  max-width: 900px;
-  margin: 20px auto;
-  padding: 20px;
-  box-sizing: border-box;
-  font-size: 16px;
-}
-
 .explanationButton {
   display: inline-block;
   padding: 10px 10px;
@@ -63,29 +58,85 @@ canvas {
   background-color: rgba(243, 158, 0, 0.196);
 }
 
+.impressum-container {
+  max-width: 1200px; /* Breitenbeschränkung */
+  margin: 40px auto;
+  padding: 40px;
+  box-sizing: border-box;
+  font-size: 16px;
+  line-height: 1.6; /* Bessere Lesbarkeit */
+  font-family: 'Zabars', Arial, Helvetica, sans-serif;
+}
+
+.impressum-container section {
+  margin-bottom: 2.5rem;
+}
+
+.impressum-container h2 {
+  font-size: 1.8rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  color: #333;
+  border-bottom: 2px solid rgba(243, 158, 0, 0.3);
+  padding-bottom: 0.5rem;
+}
+
+.impressum-container h2:first-of-type {
+  margin-top: 0;
+}
+
+.impressum-container h3 {
+  font-size: 1.3rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: #444;
+}
+
+.impressum-container p {
+  margin: 1rem 0;
+  color: #333;
+  line-height: 1.8;
+}
+
+.impressum-container a {
+  color: #f39e00;
+  transition: color 0.3s ease;
+}
+
+.impressum-container a:hover {
+  color: #d88c00;
+  text-decoration: underline;
+}
+
+/* Impressum Overlay - Hintergrund ohne Wiederholung */
 #impressumOverlay {
   display: none;
   position: fixed;
   inset: 0;
+  background-color: rgba(0, 0, 0, 0.85); /* Dunkler Overlay statt Bild */
+  backdrop-filter: blur(5px); /* Moderner Blur-Effekt */
   background-image: url('img/background-image-desert.jpg');
   color: black;
   z-index: 3000;
-  overflow: auto;
+  overflow-y: auto;
   padding: 20px;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  text-align: center;
 }
 
-#impressumOverlay h2 {
-  margin-top: 20px;
-  font-size: 32px;
+#impressumContent {
+  max-width: 1200px; /* Content-Beschränkung */
+  margin: 0 auto;
+  background-color: rgba(255, 255, 255, 0.95);
+  padding: 40px;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+  background-color: transparent;
+  font-family: 'Zabars', Arial, Helvetica, sans-serif;
 }
 
 #impressumOverlay button {
-  margin-top: 30px;
-  padding: 10px 20px;
+  display: block;
+  margin: 30px auto;
+  padding: 12px 30px;
   font-family: 'Zabars';
   font-size: 20px;
   background: orange;
@@ -93,10 +144,66 @@ canvas {
   border: none;
   border-radius: 8px;
   cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 #impressumOverlay button:hover {
   background: darkorange;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 140, 0, 0.4);
+}
+
+/* Footer Styles für Impressum - SEO-optimiert */
+.impressum-container footer {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.impressum-container footer p {
+  font-size: 1rem; /* 16px für SEO */
+  color: #666;
+  line-height: 1.6;
+  margin: 0.5rem 0;
+}
+
+.impressum-container footer a {
+  font-size: 1rem; /* 16px für SEO */
+  color: #666;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.impressum-container footer a:hover {
+  color: #f39e00;
+  text-decoration: none;
+}
+
+/* Falls der Footer auch im Overlay angezeigt wird */
+#impressumContent footer {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+#impressumContent footer p {
+  font-size: 1rem; /* 16px für SEO */
+  color: #666;
+  line-height: 1.6;
+  margin: 0.5rem 0;
+}
+
+#impressumContent footer a {
+  font-size: 1rem !important; /* 16px für SEO */
+  color: #666 !important;
+  text-decoration: none;
+}
+
+#impressumContent footer a:hover {
+  color: #f39e00 !important;
+  text-decoration: none;
 }
 
 #touchControls {
@@ -292,6 +399,19 @@ canvas {
 @media (max-width: 768px) and (hover: none) and (pointer: coarse) {
   #touchControls {
     display: block !important;
+  }
+  .impressum-container,
+  #impressumContent {
+    padding: 20px;
+    margin: 20px;
+  }
+
+  .impressum-container h2 {
+    font-size: 1.5rem;
+  }
+
+  .impressum-container h3 {
+    font-size: 1.2rem;
   }
 }
 
